@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>調音点・調音法 練習</title>
+    <style>
+        :root {
+            --primary: #1e6b4f;
+            --primary-light: #e8f5f0;
+            --accent: #e85d04;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --bg: #f7faf9;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .container { max-width: 960px; margin: 0 auto; padding: 20px; }
+        h1 { text-align: center; color: var(--primary); font-size: 1.5rem; margin-bottom: 6px; }
+        .subtitle { text-align: center; color: var(--text-light); font-size: 0.88rem; margin-bottom: 24px; }
+
+        /* モード選択 */
+        .mode-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 5px;
+        }
+        .mode-tab {
+            flex: 1;
+            padding: 10px 8px;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background: transparent;
+            color: var(--text-light);
+            transition: all 0.2s;
+        }
+        .mode-tab.active { background: var(--primary); color: white; }
+        .mode-tab:hover:not(.active) { background: var(--primary-light); color: var(--primary); }
+
+        /* メインエリア */
+        .main-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+        @media (max-width: 700px) {
+            .main-area { grid-template-columns: 1fr; }
+        }
+
+        .diagram-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        .diagram-card h3 { font-size: 0.9rem; color: var(--text-light); margin-bottom: 12px; }
+
+        .quiz-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .quiz-card h3 { font-size: 0.95rem; margin-bottom: 14px; color: var(--primary); }
+
+        /* SVG */
+        svg { width: 100%; height: auto; max-width: 380px; }
+        .hotspot {
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .hotspot:hover circle { fill: rgba(232, 93, 4, 0.3); r: 14; }
+        .hotspot circle { fill: rgba(30, 107, 79, 0.15); transition: all 0.15s; }
+        .hotspot.highlight circle { fill: rgba(232, 93, 4, 0.5); r: 14; }
+        .hotspot.correct circle { fill: rgba(22, 163, 74, 0.5); r: 14; }
+        .hotspot.wrong circle { fill: rgba(220, 38, 38, 0.4); r: 14; }
+        .label-text { font-size: 9px; fill: #475569; pointer-events: none; }
+
+        /* 問題UI */
+        .question-text {
+            font-size: 1rem;
+            line-height: 1.7;
+            margin-bottom: 16px;
+            padding: 14px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+        .choices { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+        .choice-btn {
+            padding: 10px 14px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            background: var(--card);
+            text-align: left;
+            transition: all 0.15s;
+        }
+        .choice-btn:hover:not(.disabled) { border-color: var(--primary); background: var(--primary-light); }
+        .choice-btn.correct { border-color: var(--success); background: #f0fdf4; }
+        .choice-btn.wrong { border-color: var(--danger); background: #fef2f2; }
+        .choice-btn.disabled { cursor: default; }
+
+        .input-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .input-row input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        .input-row input:focus { outline: none; border-color: var(--primary); }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 7px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: #145540; }
+        .btn-sm { padding: 7px 14px; font-size: 0.82rem; }
+
+        .feedback {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            display: none;
+        }
+        .feedback.show { display: block; }
+        .feedback.correct { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+        .feedback.wrong { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+
+        .score-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            font-size: 0.82rem;
+            color: var(--text-light);
+        }
+        .score-bar span { font-weight: 700; }
+        .score-bar .correct-score { color: var(--success); }
+        .score-bar .wrong-score { color: var(--danger); }
+
+        .instruction {
+            font-size: 0.82rem;
+            color: var(--text-light);
+            margin-bottom: 12px;
+            font-style: italic;
+        }
+
+        .kana-cell {
+            width: 100%;
+            aspect-ratio: 1;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            background: var(--card);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.12s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .kana-cell:hover:not(.disabled) { border-color: var(--primary); background: var(--primary-light); }
+        .kana-cell.selected { border-color: var(--accent); background: #fff7ed; color: var(--accent); }
+        .kana-cell.correct-answer { border-color: var(--success); background: #f0fdf4; color: var(--success); }
+        .kana-cell.wrong-answer { border-color: var(--danger); background: #fef2f2; color: var(--danger); }
+        .kana-cell.missed { border-color: var(--success); background: #f0fdf4; color: var(--success); opacity: 0.6; }
+        .kana-cell.empty { border: none; cursor: default; }
+        .kana-cell.disabled { cursor: default; }
+
+        .axis-label { font-size: 0.78rem; color: var(--text-light); font-weight: 600; margin-bottom: 5px; }
+        .axis-row { display: flex; flex-wrap: wrap; gap: 5px; }
+        .axis-btn {
+            padding: 7px 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            background: var(--card);
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.12s;
+        }
+        .axis-btn:hover:not(.disabled) { border-color: var(--primary); background: var(--primary-light); }
+        .axis-btn.selected { border-color: var(--accent); background: #fff7ed; color: var(--accent); font-weight: 700; }
+        .axis-btn.correct-answer { border-color: var(--success); background: #f0fdf4; color: var(--success); font-weight: 700; }
+        .axis-btn.wrong-answer { border-color: var(--danger); background: #fef2f2; color: var(--danger); }
+        .axis-btn.disabled { cursor: default; opacity: 0.7; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>調音点・調音法 インタラクティブ練習</h1>
+    <p class="subtitle">口腔断面図を見ながら、調音点の名前・場所・そこで作られる音を練習</p>
+
+    <div class="mode-tabs">
+        <button class="mode-tab active" onclick="setMode('click')">場所を当てる</button>
+        <button class="mode-tab" onclick="setMode('name')">名前を書く</button>
+        <button class="mode-tab" onclick="setMode('sound')">調音点→音</button>
+        <button class="mode-tab" onclick="setMode('voicing')">有声無声→音</button>
+        <button class="mode-tab" onclick="setMode('manner')">調音法→音</button>
+        <button class="mode-tab" onclick="setMode('fullname')">正式名称</button>
+        <button class="mode-tab" onclick="setMode('symbol')">記号↔仮名</button>
+    </div>
+
+    <div class="main-area">
+        <div class="diagram-card">
+            <h3>口腔断面図（矢状断面図）</h3>
+            <svg viewBox="0 0 400 320" xmlns="http://www.w3.org/2000/svg" id="diagram">
+                <!-- 頭部外形 -->
+                <path d="M 80 30 Q 60 30, 55 60 Q 50 90, 55 120 Q 58 140, 50 160 L 45 200 Q 42 230, 55 250 Q 65 265, 80 275 Q 100 290, 130 295 L 180 298 Q 220 298, 250 290 Q 280 280, 300 260 Q 320 240, 330 210 Q 340 180, 335 150 Q 330 120, 310 95 Q 290 70, 260 50 Q 230 30, 190 25 Q 140 20, 80 30 Z"
+                      fill="#fde8d8" stroke="#c9a88c" stroke-width="2"/>
+
+                <!-- 鼻腔 -->
+                <path d="M 70 80 Q 75 70, 90 68 Q 110 66, 130 70 Q 150 74, 165 80 Q 175 85, 178 95"
+                      fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3"/>
+                <text x="100" y="60" class="label-text" style="font-size:8px;fill:#94a3b8">鼻腔</text>
+
+                <!-- 口腔の上壁（硬口蓋・軟口蓋） -->
+                <!-- 上唇 -->
+                <path d="M 68 155 Q 60 150, 55 155 Q 50 162, 55 168 Q 60 174, 68 170"
+                      fill="#e8a0a0" stroke="#c07070" stroke-width="1.5"/>
+                <!-- 上歯 -->
+                <line x1="72" y1="155" x2="72" y2="170" stroke="#d4d4d8" stroke-width="3" stroke-linecap="round"/>
+                <!-- 歯茎 -->
+                <path d="M 75 148 Q 85 140, 100 135 Q 110 132, 118 130"
+                      fill="none" stroke="#d97706" stroke-width="2.5"/>
+                <!-- 硬口蓋 -->
+                <path d="M 118 130 Q 140 120, 165 115 Q 190 112, 210 115"
+                      fill="none" stroke="#7c3aed" stroke-width="2.5"/>
+                <!-- 軟口蓋 -->
+                <path d="M 210 115 Q 235 120, 252 130 Q 265 140, 270 155"
+                      fill="none" stroke="#2563eb" stroke-width="2.5"/>
+                <!-- 口蓋垂 -->
+                <path d="M 270 155 Q 273 165, 268 175 Q 264 182, 258 180"
+                      fill="#e8a0a0" stroke="#c07070" stroke-width="1.5"/>
+
+                <!-- 口腔下壁（舌・下顎） -->
+                <!-- 下唇 -->
+                <path d="M 68 175 Q 60 178, 55 185 Q 52 192, 57 196 Q 62 199, 68 195"
+                      fill="#e8a0a0" stroke="#c07070" stroke-width="1.5"/>
+                <!-- 下歯 -->
+                <line x1="72" y1="175" x2="72" y2="190" stroke="#d4d4d8" stroke-width="3" stroke-linecap="round"/>
+                <!-- 舌 -->
+                <path d="M 78 188 Q 95 178, 120 172 Q 150 165, 180 168 Q 210 172, 235 185 Q 255 200, 265 220 Q 270 235, 260 245"
+                      fill="#e89090" stroke="#b06060" stroke-width="2" fill-opacity="0.5"/>
+                <!-- 舌の部位ラベル -->
+                <text x="85" y="205" class="label-text" style="font-size:7px">舌先</text>
+                <text x="130" y="195" class="label-text" style="font-size:7px">前舌</text>
+                <text x="195" y="200" class="label-text" style="font-size:7px">後舌</text>
+
+                <!-- 咽頭・声門 -->
+                <path d="M 260 245 Q 265 260, 270 275 Q 273 285, 270 295"
+                      fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+                <path d="M 285 220 Q 290 240, 292 260 Q 293 280, 290 295"
+                      fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+                <!-- 声帯 -->
+                <line x1="265" y1="282" x2="293" y2="282" stroke="#dc2626" stroke-width="2"/>
+                <line x1="265" y1="286" x2="293" y2="286" stroke="#dc2626" stroke-width="2"/>
+
+                <!-- 調音点のホットスポット -->
+                <!-- 両唇 -->
+                <g class="hotspot" data-id="bilabial" onclick="spotClick('bilabial')">
+                    <circle cx="58" cy="168" r="11"/>
+                    <text x="30" y="168" class="label-text" id="lbl-bilabial"></text>
+                </g>
+                <!-- 歯茎 -->
+                <g class="hotspot" data-id="alveolar" onclick="spotClick('alveolar')">
+                    <circle cx="92" cy="138" r="11"/>
+                    <text x="75" y="125" class="label-text" id="lbl-alveolar"></text>
+                </g>
+                <!-- 歯茎硬口蓋 -->
+                <g class="hotspot" data-id="alveopalatal" onclick="spotClick('alveopalatal')">
+                    <circle cx="140" cy="122" r="11"/>
+                    <text x="125" y="108" class="label-text" id="lbl-alveopalatal"></text>
+                </g>
+                <!-- 硬口蓋 -->
+                <g class="hotspot" data-id="palatal" onclick="spotClick('palatal')">
+                    <circle cx="188" cy="114" r="11"/>
+                    <text x="173" y="100" class="label-text" id="lbl-palatal"></text>
+                </g>
+                <!-- 軟口蓋 -->
+                <g class="hotspot" data-id="velar" onclick="spotClick('velar')">
+                    <circle cx="240" cy="122" r="11"/>
+                    <text x="230" y="106" class="label-text" id="lbl-velar"></text>
+                </g>
+                <!-- 口蓋垂 -->
+                <g class="hotspot" data-id="uvular" onclick="spotClick('uvular')">
+                    <circle cx="264" cy="172" r="11"/>
+                    <text x="276" y="170" class="label-text" id="lbl-uvular"></text>
+                </g>
+                <!-- 声門 -->
+                <g class="hotspot" data-id="glottal" onclick="spotClick('glottal')">
+                    <circle cx="279" cy="284" r="11"/>
+                    <text x="296" y="284" class="label-text" id="lbl-glottal"></text>
+                </g>
+
+                <!-- 凡例の色帯 -->
+                <rect x="15" y="295" width="12" height="4" fill="#d97706" rx="2"/>
+                <text x="30" y="299" style="font-size:7px;fill:#64748b">歯茎</text>
+                <rect x="65" y="295" width="12" height="4" fill="#7c3aed" rx="2"/>
+                <text x="80" y="299" style="font-size:7px;fill:#64748b">硬口蓋</text>
+                <rect x="125" y="295" width="12" height="4" fill="#2563eb" rx="2"/>
+                <text x="140" y="299" style="font-size:7px;fill:#64748b">軟口蓋</text>
+                <rect x="185" y="295" width="12" height="4" fill="#dc2626" rx="2"/>
+                <text x="200" y="299" style="font-size:7px;fill:#64748b">声帯</text>
+            </svg>
+        </div>
+
+        <div class="quiz-card">
+            <div class="score-bar">
+                <span>正解: <span class="correct-score" id="sc-correct">0</span></span>
+                <span>不正解: <span class="wrong-score" id="sc-wrong">0</span></span>
+                <span>問題: <span id="sc-num">1</span></span>
+            </div>
+            <div id="quiz-area"></div>
+            <div class="feedback" id="feedback"></div>
+            <div class="mt-12" style="margin-top:14px">
+                <button class="btn btn-primary" id="next-btn" onclick="nextQuestion()" style="display:none">次の問題 →</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 調音点データ
+const spots = {
+    bilabial: { name: '両唇', description: '上唇と下唇', sounds: ['[p] パ行', '[b] バ行', '[m] マ行', '[ɸ] フ'], soundsShort: 'パ行・バ行・マ行・フ',
+        kanaAnswers: ['パ','ピ','プ','ペ','ポ','バ','ビ','ブ','ベ','ボ','マ','ミ','ム','メ','モ','フ'] },
+    alveolar: { name: '歯茎', description: '舌先と歯茎', sounds: ['[t] タテト', '[d] ダデド', '[n] ナヌネノ', '[s] サスセソ', '[z] ザズゼゾ', '[ts] ツ', '[dz] ヅ', '[ɾ] ラ行'], soundsShort: 'サ行(シ除く)・タ行(チ除く)・ナ行(ニ除く)・ラ行',
+        kanaAnswers: ['サ','ス','セ','ソ','ザ','ズ','ゼ','ゾ','タ','テ','ト','ダ','デ','ド','ツ','ヅ','ナ','ヌ','ネ','ノ','ラ','リ','ル','レ','ロ'] },
+    alveopalatal: { name: '歯茎硬口蓋', description: '舌と歯茎～硬口蓋', sounds: ['[ɕ] シ', '[ʑ] ジ(語中)', '[tɕ] チ', '[dʑ] ジ(語頭)・ヂ', '[ɲ] ニ'], soundsShort: 'シ・ジ・チ・ヂ・ニ',
+        kanaAnswers: ['シ','ジ','チ','ヂ','ニ'] },
+    palatal: { name: '硬口蓋', description: '舌と硬口蓋', sounds: ['[j] ヤ行', '[ç] ヒ'], soundsShort: 'ヒ・ヤ行',
+        kanaAnswers: ['ヒ','ヤ','ユ','ヨ'] },
+    velar: { name: '軟口蓋', description: '舌の奥と軟口蓋', sounds: ['[k] カ行', '[g] ガ行', '[ŋ] ン(カ行前)', '[ɰ] ワ'], soundsShort: 'カ行・ガ行・ワ',
+        kanaAnswers: ['カ','キ','ク','ケ','コ','ガ','ギ','グ','ゲ','ゴ','ワ'] },
+    uvular: { name: '口蓋垂', description: '舌の奥と口蓋垂（のどちんこ）', sounds: ['[ɴ] ン(語末・母音前)'], soundsShort: 'ン(語末・母音前)',
+        kanaAnswers: ['ン'] },
+    glottal: { name: '声門', description: '声帯', sounds: ['[h] ハヘホ'], soundsShort: 'ハ・ヘ・ホ',
+        kanaAnswers: ['ハ','ヘ','ホ'] }
+};
+const spotIds = Object.keys(spots);
+
+// 仮名→属性マッピング（有声/無声・調音法用）
+const kanaMap = {
+    'カ':{v:'無声',m:'破裂音'},'キ':{v:'無声',m:'破裂音'},'ク':{v:'無声',m:'破裂音'},'ケ':{v:'無声',m:'破裂音'},'コ':{v:'無声',m:'破裂音'},
+    'サ':{v:'無声',m:'摩擦音'},'シ':{v:'無声',m:'摩擦音'},'ス':{v:'無声',m:'摩擦音'},'セ':{v:'無声',m:'摩擦音'},'ソ':{v:'無声',m:'摩擦音'},
+    'タ':{v:'無声',m:'破裂音'},'チ':{v:'無声',m:'破擦音'},'ツ':{v:'無声',m:'破擦音'},'テ':{v:'無声',m:'破裂音'},'ト':{v:'無声',m:'破裂音'},
+    'ナ':{v:'有声',m:'鼻音'},'ニ':{v:'有声',m:'鼻音'},'ヌ':{v:'有声',m:'鼻音'},'ネ':{v:'有声',m:'鼻音'},'ノ':{v:'有声',m:'鼻音'},
+    'ハ':{v:'無声',m:'摩擦音'},'ヒ':{v:'無声',m:'摩擦音'},'フ':{v:'無声',m:'摩擦音'},'ヘ':{v:'無声',m:'摩擦音'},'ホ':{v:'無声',m:'摩擦音'},
+    'マ':{v:'有声',m:'鼻音'},'ミ':{v:'有声',m:'鼻音'},'ム':{v:'有声',m:'鼻音'},'メ':{v:'有声',m:'鼻音'},'モ':{v:'有声',m:'鼻音'},
+    'ヤ':{v:'有声',m:'接近音'},'ユ':{v:'有声',m:'接近音'},'ヨ':{v:'有声',m:'接近音'},
+    'ラ':{v:'有声',m:'弾き音'},'リ':{v:'有声',m:'弾き音'},'ル':{v:'有声',m:'弾き音'},'レ':{v:'有声',m:'弾き音'},'ロ':{v:'有声',m:'弾き音'},
+    'ワ':{v:'有声',m:'接近音'},'ン':{v:'有声',m:'鼻音'},
+    'ガ':{v:'有声',m:'破裂音'},'ギ':{v:'有声',m:'破裂音'},'グ':{v:'有声',m:'破裂音'},'ゲ':{v:'有声',m:'破裂音'},'ゴ':{v:'有声',m:'破裂音'},
+    'ザ':{v:'有声',m:'摩擦音'},'ジ':{v:'有声',m:'摩擦音'},'ズ':{v:'有声',m:'摩擦音'},'ゼ':{v:'有声',m:'摩擦音'},'ゾ':{v:'有声',m:'摩擦音'},
+    'ダ':{v:'有声',m:'破裂音'},'ヂ':{v:'有声',m:'破擦音'},'ヅ':{v:'有声',m:'破擦音'},'デ':{v:'有声',m:'破裂音'},'ド':{v:'有声',m:'破裂音'},
+    'バ':{v:'有声',m:'破裂音'},'ビ':{v:'有声',m:'破裂音'},'ブ':{v:'有声',m:'破裂音'},'ベ':{v:'有声',m:'破裂音'},'ボ':{v:'有声',m:'破裂音'},
+    'パ':{v:'無声',m:'破裂音'},'ピ':{v:'無声',m:'破裂音'},'プ':{v:'無声',m:'破裂音'},'ペ':{v:'無声',m:'破裂音'},'ポ':{v:'無声',m:'破裂音'}
+};
+const voicingTypes = ['無声', '有声'];
+const mannerTypes = ['破裂音', '摩擦音', '破擦音', '鼻音', '弾き音', '接近音'];
+
+// 全子音データ（正式名称＋記号＋仮名）
+const consonants = [
+    { symbol: '[p]', kana: 'パ行', fullname: '無声両唇破裂音', voicing: '無声', place: '両唇', manner: '破裂音' },
+    { symbol: '[b]', kana: 'バ行', fullname: '有声両唇破裂音', voicing: '有声', place: '両唇', manner: '破裂音' },
+    { symbol: '[m]', kana: 'マ行', fullname: '有声両唇鼻音', voicing: '有声', place: '両唇', manner: '鼻音' },
+    { symbol: '[ɸ]', kana: 'フ', fullname: '無声両唇摩擦音', voicing: '無声', place: '両唇', manner: '摩擦音' },
+    { symbol: '[t]', kana: 'タ・テ・ト', fullname: '無声歯茎破裂音', voicing: '無声', place: '歯茎', manner: '破裂音' },
+    { symbol: '[d]', kana: 'ダ・デ・ド', fullname: '有声歯茎破裂音', voicing: '有声', place: '歯茎', manner: '破裂音' },
+    { symbol: '[n]', kana: 'ナ・ヌ・ネ・ノ', fullname: '有声歯茎鼻音', voicing: '有声', place: '歯茎', manner: '鼻音' },
+    { symbol: '[s]', kana: 'サ・ス・セ・ソ', fullname: '無声歯茎摩擦音', voicing: '無声', place: '歯茎', manner: '摩擦音' },
+    { symbol: '[z]', kana: 'ザ・ズ・ゼ・ゾ(語中)', fullname: '有声歯茎摩擦音', voicing: '有声', place: '歯茎', manner: '摩擦音' },
+    { symbol: '[ts]', kana: 'ツ', fullname: '無声歯茎破擦音', voicing: '無声', place: '歯茎', manner: '破擦音' },
+    { symbol: '[dz]', kana: 'ヅ・語頭ズ', fullname: '有声歯茎破擦音', voicing: '有声', place: '歯茎', manner: '破擦音' },
+    { symbol: '[ɾ]', kana: 'ラ行', fullname: '有声歯茎弾き音', voicing: '有声', place: '歯茎', manner: '弾き音' },
+    { symbol: '[ɕ]', kana: 'シ', fullname: '無声歯茎硬口蓋摩擦音', voicing: '無声', place: '歯茎硬口蓋', manner: '摩擦音' },
+    { symbol: '[ʑ]', kana: 'ジ(語中)', fullname: '有声歯茎硬口蓋摩擦音', voicing: '有声', place: '歯茎硬口蓋', manner: '摩擦音' },
+    { symbol: '[tɕ]', kana: 'チ', fullname: '無声歯茎硬口蓋破擦音', voicing: '無声', place: '歯茎硬口蓋', manner: '破擦音' },
+    { symbol: '[dʑ]', kana: 'ジ(語頭)・ヂ', fullname: '有声歯茎硬口蓋破擦音', voicing: '有声', place: '歯茎硬口蓋', manner: '破擦音' },
+    { symbol: '[ɲ]', kana: 'ニ', fullname: '有声歯茎硬口蓋鼻音', voicing: '有声', place: '歯茎硬口蓋', manner: '鼻音' },
+    { symbol: '[ç]', kana: 'ヒ', fullname: '無声硬口蓋摩擦音', voicing: '無声', place: '硬口蓋', manner: '摩擦音' },
+    { symbol: '[j]', kana: 'ヤ行', fullname: '有声硬口蓋接近音', voicing: '有声', place: '硬口蓋', manner: '接近音' },
+    { symbol: '[k]', kana: 'カ行', fullname: '無声軟口蓋破裂音', voicing: '無声', place: '軟口蓋', manner: '破裂音' },
+    { symbol: '[g]', kana: 'ガ行', fullname: '有声軟口蓋破裂音', voicing: '有声', place: '軟口蓋', manner: '破裂音' },
+    { symbol: '[ŋ]', kana: 'ン(カ行前)', fullname: '有声軟口蓋鼻音', voicing: '有声', place: '軟口蓋', manner: '鼻音' },
+    { symbol: '[ɰ]', kana: 'ワ', fullname: '有声軟口蓋接近音', voicing: '有声', place: '軟口蓋', manner: '接近音' },
+    { symbol: '[ɴ]', kana: 'ン(語末)', fullname: '有声口蓋垂鼻音', voicing: '有声', place: '口蓋垂', manner: '鼻音' },
+    { symbol: '[h]', kana: 'ハ・ヘ・ホ', fullname: '無声声門摩擦音', voicing: '無声', place: '声門', manner: '摩擦音' }
+];
+
+const allModes = ['click','name','sound','voicing','manner','fullname','symbol'];
+let mode = 'click';
+let score = {correct: 0, wrong: 0, num: 0};
+let currentQ = null;
+let answered = false;
+
+function setMode(m) {
+    mode = m;
+    document.querySelectorAll('.mode-tab').forEach((t, i) => {
+        t.classList.toggle('active', allModes[i] === m);
+    });
+    clearHighlights();
+    showLabels(false);
+    score = {correct: 0, wrong: 0, num: 0};
+    updateScore();
+    nextQuestion();
+}
+
+function showLabels(show) {
+    spotIds.forEach(id => {
+        const el = document.getElementById('lbl-' + id);
+        if (el) el.textContent = show ? spots[id].name : '';
+    });
+}
+function clearHighlights() {
+    document.querySelectorAll('.hotspot').forEach(g => g.classList.remove('highlight', 'correct', 'wrong'));
+}
+function updateScore() {
+    document.getElementById('sc-correct').textContent = score.correct;
+    document.getElementById('sc-wrong').textContent = score.wrong;
+    document.getElementById('sc-num').textContent = score.num;
+}
+function randomSpot() { return spotIds[Math.floor(Math.random() * spotIds.length)]; }
+function randomConsonant() { return consonants[Math.floor(Math.random() * consonants.length)]; }
+function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+    return a;
+}
+
+function nextQuestion() {
+    answered = false;
+    clearHighlights();
+    document.getElementById('next-btn').style.display = 'none';
+    const fb = document.getElementById('feedback');
+    fb.classList.remove('show', 'correct', 'wrong');
+    score.num++;
+    updateScore();
+    const area = document.getElementById('quiz-area');
+
+    if (mode === 'click' || mode === 'name' || mode === 'sound' || mode === 'voicing' || mode === 'manner' || mode === 'label') {
+        const target = randomSpot();
+        currentQ = target;
+
+        switch(mode) {
+            case 'click':
+                clearHighlights();
+                area.innerHTML = `
+                    <div class="question-text">「<strong>${spots[target].name}</strong>」の位置を<br>図の中でクリックしてください。</div>
+                    <p class="instruction">○印のある場所をクリック</p>`;
+                break;
+            case 'name':
+                document.querySelector('.hotspot[data-id="'+target+'"]').classList.add('highlight');
+                area.innerHTML = `
+                    <div class="question-text">ハイライトされている場所の<strong>調音点名</strong>を入力：</div>
+                    <div class="input-row">
+                        <input type="text" id="answer-input" placeholder="例：歯茎" onkeydown="if(event.key==='Enter')checkName()">
+                        <button class="btn btn-primary btn-sm" onclick="checkName()">回答</button>
+                    </div>`;
+                setTimeout(()=>{const i=document.getElementById('answer-input');if(i)i.focus();},100);
+                break;
+            case 'sound':
+                document.querySelector('.hotspot[data-id="'+target+'"]').classList.add('highlight');
+                currentQ = {type:'place', value: spots[target].name, answers: spots[target].kanaAnswers || []};
+                area.innerHTML = `
+                    <div class="question-text">「<strong>${spots[target].name}</strong>」で作られる音を<br>五十音表から<strong>全て</strong>選んでください。</div>
+                    ${buildKanaGrid()}
+                    <button class="btn btn-primary btn-sm" onclick="checkGenericGrid()">回答する</button>`;
+                break;
+            case 'voicing':
+                // 有声/無声を指定 → 五十音から該当を全て選ぶ
+                const vTarget = voicingTypes[Math.floor(Math.random()*voicingTypes.length)];
+                currentQ = {type:'voicing', value: vTarget, answers: Object.keys(kanaMap).filter(k=>kanaMap[k].v===vTarget)};
+                area.innerHTML = `
+                    <div class="question-text">「<strong>${vTarget}音</strong>」を五十音表から<strong>全て</strong>選んでください。</div>
+                    ${buildKanaGrid()}
+                    <button class="btn btn-primary btn-sm" onclick="checkGenericGrid()">回答する</button>`;
+                break;
+            case 'manner':
+                // 調音法を指定 → 五十音から該当を全て選ぶ
+                const mTarget = mannerTypes[Math.floor(Math.random()*mannerTypes.length)];
+                currentQ = {type:'manner', value: mTarget, answers: Object.keys(kanaMap).filter(k=>kanaMap[k].m===mTarget)};
+                area.innerHTML = `
+                    <div class="question-text">「<strong>${mTarget}</strong>」に該当する音を五十音表から<strong>全て</strong>選んでください。</div>
+                    ${buildKanaGrid()}
+                    <button class="btn btn-primary btn-sm" onclick="checkGenericGrid()">回答する</button>`;
+                break;
+            case 'label':
+                document.querySelector('.hotspot[data-id="'+target+'"]').classList.add('highlight');
+                area.innerHTML = `
+                    <div class="question-text">ハイライトされている場所の<strong>調音点名</strong>を入力：</div>
+                    <div class="input-row">
+                        <input type="text" id="answer-input" placeholder="例：両唇" onkeydown="if(event.key==='Enter')checkLabel()">
+                        <button class="btn btn-primary btn-sm" onclick="checkLabel()">回答</button>
+                    </div>`;
+                setTimeout(()=>{const i=document.getElementById('answer-input');if(i)i.focus();},100);
+                break;
+        }
+    } else if (mode === 'fullname') {
+        // 正式名称モード：3要素それぞれから選ぶ
+        const c = randomConsonant();
+        currentQ = c;
+        const voicingOptions = ['無声', '有声'];
+        const placeOptions = ['両唇', '歯茎', '歯茎硬口蓋', '硬口蓋', '軟口蓋', '口蓋垂', '声門'];
+        const mannerOptions = ['破裂音', '摩擦音', '破擦音', '鼻音', '弾き音', '接近音'];
+
+        area.innerHTML = `
+            <div class="question-text"><span style="font-size:1.8rem;font-weight:700">${c.symbol}</span> ${c.kana}<br><br>この音の正式名称を3つの要素から選んでください。</div>
+            <div style="margin-bottom:10px;">
+                <div class="axis-label">① 声帯振動</div>
+                <div class="axis-row" id="axis-voicing">
+                    ${voicingOptions.map(v=>`<button class="axis-btn" data-axis="voicing" data-val="${v}" onclick="selectAxis(this)">${v}</button>`).join('')}
+                </div>
+            </div>
+            <div style="margin-bottom:10px;">
+                <div class="axis-label">② 調音点</div>
+                <div class="axis-row" id="axis-place">
+                    ${placeOptions.map(v=>`<button class="axis-btn" data-axis="place" data-val="${v}" onclick="selectAxis(this)">${v}</button>`).join('')}
+                </div>
+            </div>
+            <div style="margin-bottom:14px;">
+                <div class="axis-label">③ 調音法</div>
+                <div class="axis-row" id="axis-manner">
+                    ${mannerOptions.map(v=>`<button class="axis-btn" data-axis="manner" data-val="${v}" onclick="selectAxis(this)">${v}</button>`).join('')}
+                </div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="checkFullname3()">回答する</button>`;
+    } else if (mode === 'symbol') {
+        // 記号↔仮名モード
+        const c = randomConsonant();
+        currentQ = c;
+        const direction = Math.random() < 0.5 ? 'toKana' : 'toSymbol';
+
+        if (direction === 'toKana') {
+            // 記号→仮名
+            const others = shuffle(consonants.filter(x=>x.kana!==c.kana)).slice(0,3).map(x=>x.kana);
+            const choices = shuffle([c.kana, ...others]);
+            area.innerHTML = `
+                <div class="question-text"><span style="font-size:2rem;font-weight:700">${c.symbol}</span><br><br>この発音記号に対応する<strong>仮名</strong>は？</div>
+                <div class="choices">${choices.map(ch=>`<button class="choice-btn" onclick="answerSymbol(this,'${ch===c.kana}','${c.kana}','${c.fullname}')">${ch}</button>`).join('')}</div>`;
+        } else {
+            // 仮名→記号
+            const others = shuffle(consonants.filter(x=>x.symbol!==c.symbol)).slice(0,3).map(x=>x.symbol);
+            const choices = shuffle([c.symbol, ...others]);
+            area.innerHTML = `
+                <div class="question-text">「<strong>${c.kana}</strong>」の子音<br><br>に対応する<strong>発音記号</strong>は？</div>
+                <div class="choices">${choices.map(ch=>`<button class="choice-btn" onclick="answerSymbol(this,'${ch===c.symbol}','${c.symbol}','${c.fullname}')">${ch}</button>`).join('')}</div>`;
+        }
+    }
+}
+
+// --- 回答処理 ---
+function spotClick(id) {
+    if (mode !== 'click' || answered) return;
+    answered = true;
+    const fb = document.getElementById('feedback');
+    if (id === currentQ) {
+        score.correct++;
+        document.querySelector('.hotspot[data-id="'+id+'"]').classList.add('correct');
+        fb.className = 'feedback show correct';
+        fb.innerHTML = `⭕ 正解！「${spots[id].name}」（${spots[id].description}）<br>作られる音：${spots[id].soundsShort}`;
+    } else {
+        score.wrong++;
+        document.querySelector('.hotspot[data-id="'+id+'"]').classList.add('wrong');
+        document.querySelector('.hotspot[data-id="'+currentQ+'"]').classList.add('correct');
+        fb.className = 'feedback show wrong';
+        fb.innerHTML = `❌ 不正解… クリックしたのは「${spots[id].name}」<br>正解は「${spots[currentQ].name}」（${spots[currentQ].description}）`;
+    }
+    updateScore();
+    document.getElementById('next-btn').style.display = 'inline-block';
+}
+
+function answerChoice(selected, correct) {
+    if (answered) return;
+    answered = true;
+    const fb = document.getElementById('feedback');
+    document.querySelectorAll('.choice-btn').forEach(b => {
+        b.classList.add('disabled');
+        if (b.textContent === spots[correct].name) b.classList.add('correct');
+        else if (b.textContent === spots[selected].name && selected !== correct) b.classList.add('wrong');
+    });
+    if (selected === correct) {
+        score.correct++;
+        fb.className = 'feedback show correct';
+        fb.innerHTML = `⭕ 正解！「${spots[correct].name}」<br>作られる音：${spots[correct].soundsShort}`;
+    } else {
+        score.wrong++;
+        fb.className = 'feedback show wrong';
+        fb.innerHTML = `❌ 不正解… 正解は「${spots[correct].name}」<br>作られる音：${spots[correct].soundsShort}`;
+    }
+    updateScore();
+    document.getElementById('next-btn').style.display = 'inline-block';
+}
+
+function answerSoundChoice(btn, isCorrectStr) {
+    if (answered) return;
+    answered = true;
+    const isCorrect = isCorrectStr === 'true';
+    const fb = document.getElementById('feedback');
+    const correctText = spots[currentQ].soundsShort;
+    document.querySelectorAll('.choice-btn').forEach(b => { b.classList.add('disabled'); if (b.textContent===correctText) b.classList.add('correct'); });
+    if (isCorrect) { score.correct++; btn.classList.add('correct'); fb.className='feedback show correct'; fb.innerHTML=`⭕ 正解！<br>${spots[currentQ].sounds.join('、')}`; }
+    else { score.wrong++; btn.classList.add('wrong'); fb.className='feedback show wrong'; fb.innerHTML=`❌ 不正解…<br>正解：${spots[currentQ].sounds.join('、')}`; }
+    updateScore(); document.getElementById('next-btn').style.display='inline-block';
+}
+
+function checkLabel() {
+    if (answered) return;
+    const input = document.getElementById('answer-input');
+    if (!input) return;
+    const val = input.value.trim();
+    if (!val) return;
+    answered = true;
+    const fb = document.getElementById('feedback');
+    const correct = spots[currentQ].name;
+    const isCorrect = val === correct || correct.includes(val) || val.includes(correct);
+    if (isCorrect) { score.correct++; fb.className='feedback show correct'; fb.innerHTML=`⭕ 正解！「${correct}」<br>作られる音：${spots[currentQ].soundsShort}`; }
+    else { score.wrong++; fb.className='feedback show wrong'; fb.innerHTML=`❌ 不正解… 回答：「${val}」→ 正解：「${correct}」<br>作られる音：${spots[currentQ].soundsShort}`; }
+    input.disabled = true; updateScore(); document.getElementById('next-btn').style.display='inline-block';
+}
+const checkName = checkLabel;
+
+function toggleKana(btn) {
+    if (answered) return;
+    btn.classList.toggle('selected');
+}
+
+function buildKanaGrid() {
+    const rows = [
+        ['ア','イ','ウ','エ','オ'],
+        ['カ','キ','ク','ケ','コ'],
+        ['サ','シ','ス','セ','ソ'],
+        ['タ','チ','ツ','テ','ト'],
+        ['ナ','ニ','ヌ','ネ','ノ'],
+        ['ハ','ヒ','フ','ヘ','ホ'],
+        ['マ','ミ','ム','メ','モ'],
+        ['ヤ','','ユ','','ヨ'],
+        ['ラ','リ','ル','レ','ロ'],
+        ['ワ','','ン','',''],
+        ['ガ','ギ','グ','ゲ','ゴ'],
+        ['ザ','ジ','ズ','ゼ','ゾ'],
+        ['ダ','ヂ','ヅ','デ','ド'],
+        ['バ','ビ','ブ','ベ','ボ'],
+        ['パ','ピ','プ','ペ','ポ']
+    ];
+    let html = '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:12px;">';
+    rows.forEach(row => {
+        row.forEach(k => {
+            if (k) html += `<button class="kana-cell" data-kana="${k}" onclick="toggleKana(this)">${k}</button>`;
+            else html += `<div class="kana-cell empty"></div>`;
+        });
+    });
+    html += '</div>';
+    return html;
+}
+
+function checkGenericGrid() {
+    if (answered) return;
+    answered = true;
+    const fb = document.getElementById('feedback');
+    const correctSet = new Set(currentQ.answers || []);
+    const selected = new Set();
+    document.querySelectorAll('.kana-cell[data-kana]').forEach(btn => {
+        if (btn.classList.contains('selected')) selected.add(btn.dataset.kana);
+    });
+
+    let correctCount = 0, wrongCount = 0, missedCount = 0;
+    document.querySelectorAll('.kana-cell[data-kana]').forEach(btn => {
+        btn.classList.add('disabled');
+        const k = btn.dataset.kana;
+        const isCorrect = correctSet.has(k);
+        const wasSelected = selected.has(k);
+        if (isCorrect && wasSelected) { btn.classList.add('correct-answer'); correctCount++; }
+        else if (!isCorrect && wasSelected) { btn.classList.add('wrong-answer'); wrongCount++; }
+        else if (isCorrect && !wasSelected) { btn.classList.add('missed'); missedCount++; }
+    });
+
+    const perfect = wrongCount === 0 && missedCount === 0;
+    if (perfect) {
+        score.correct++;
+        fb.className = 'feedback show correct';
+        fb.innerHTML = `⭕ 完璧！ 全${correctCount}個正解<br>（${currentQ.value}）`;
+    } else {
+        score.wrong++;
+        fb.className = 'feedback show wrong';
+        fb.innerHTML = `❌ 余分：${wrongCount}個、不足：${missedCount}個<br>正解は緑で表示（薄緑＝選び漏れ）`;
+    }
+    updateScore();
+    document.getElementById('next-btn').style.display = 'inline-block';
+}
+
+function checkSoundGrid() { checkGenericGrid(); }
+
+function selectAxis(btn) {
+    if (answered) return;
+    // 同じ軸内では1つだけ選択
+    const axis = btn.dataset.axis;
+    document.querySelectorAll(`.axis-btn[data-axis="${axis}"]`).forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+}
+
+function checkFullname3() {
+    if (answered) return;
+    answered = true;
+    const fb = document.getElementById('feedback');
+    const c = currentQ;
+
+    const selVoicing = document.querySelector('.axis-btn[data-axis="voicing"].selected');
+    const selPlace = document.querySelector('.axis-btn[data-axis="place"].selected');
+    const selManner = document.querySelector('.axis-btn[data-axis="manner"].selected');
+
+    const gotVoicing = selVoicing ? selVoicing.dataset.val : '';
+    const gotPlace = selPlace ? selPlace.dataset.val : '';
+    const gotManner = selManner ? selManner.dataset.val : '';
+
+    const voicingOk = gotVoicing === c.voicing;
+    const placeOk = gotPlace === c.place;
+    const mannerOk = gotManner === c.manner;
+    const allOk = voicingOk && placeOk && mannerOk;
+
+    // 全ボタンを disable して正解/不正解を表示
+    document.querySelectorAll('.axis-btn').forEach(btn => {
+        btn.classList.add('disabled');
+        const axis = btn.dataset.axis;
+        const val = btn.dataset.val;
+        const correctVal = axis === 'voicing' ? c.voicing : axis === 'place' ? c.place : c.manner;
+        if (val === correctVal) btn.classList.add('correct-answer');
+        else if (btn.classList.contains('selected')) btn.classList.add('wrong-answer');
+    });
+
+    if (allOk) {
+        score.correct++;
+        fb.className = 'feedback show correct';
+        fb.innerHTML = `⭕ 正解！<br><strong>${c.fullname}</strong><br>${c.symbol} ${c.kana}`;
+    } else {
+        score.wrong++;
+        let detail = [];
+        if (!voicingOk) detail.push(`声帯振動：${gotVoicing||'未選択'} → ${c.voicing}`);
+        if (!placeOk) detail.push(`調音点：${gotPlace||'未選択'} → ${c.place}`);
+        if (!mannerOk) detail.push(`調音法：${gotManner||'未選択'} → ${c.manner}`);
+        fb.className = 'feedback show wrong';
+        fb.innerHTML = `❌ 不正解…<br>正解：<strong>${c.fullname}</strong><br>${detail.join('<br>')}`;
+    }
+    updateScore();
+    document.getElementById('next-btn').style.display = 'inline-block';
+}
+
+function answerFullname(btn, isCorrectStr, correctLabel) {
+    if (answered) return;
+    answered = true;
+    const isCorrect = isCorrectStr === 'true';
+    const fb = document.getElementById('feedback');
+    document.querySelectorAll('.choice-btn').forEach(b => { b.classList.add('disabled'); if(b.textContent.trim()===correctLabel.trim()) b.classList.add('correct'); });
+    if (isCorrect) { score.correct++; btn.classList.add('correct'); fb.className='feedback show correct'; fb.innerHTML=`⭕ 正解！<br>${currentQ.symbol} ${currentQ.kana} ＝ ${currentQ.fullname}<br><small>（${currentQ.voicing}＋${currentQ.place}＋${currentQ.manner}）</small>`; }
+    else { score.wrong++; btn.classList.add('wrong'); fb.className='feedback show wrong'; fb.innerHTML=`❌ 不正解…<br>正解：${currentQ.symbol} ${currentQ.kana} ＝ ${currentQ.fullname}<br><small>（${currentQ.voicing}＋${currentQ.place}＋${currentQ.manner}）</small>`; }
+    updateScore(); document.getElementById('next-btn').style.display='inline-block';
+}
+
+function answerSymbol(btn, isCorrectStr, correctLabel, fullname) {
+    if (answered) return;
+    answered = true;
+    const isCorrect = isCorrectStr === 'true';
+    const fb = document.getElementById('feedback');
+    document.querySelectorAll('.choice-btn').forEach(b => { b.classList.add('disabled'); if(b.textContent.trim()===correctLabel.trim()) b.classList.add('correct'); });
+    if (isCorrect) { score.correct++; btn.classList.add('correct'); fb.className='feedback show correct'; fb.innerHTML=`⭕ 正解！<br>${currentQ.symbol} ＝ ${currentQ.kana}<br><small>正式名称：${fullname}</small>`; }
+    else { score.wrong++; btn.classList.add('wrong'); fb.className='feedback show wrong'; fb.innerHTML=`❌ 不正解…<br>正解：${correctLabel} ＝ ${currentQ.kana}<br><small>正式名称：${fullname}</small>`; }
+    updateScore(); document.getElementById('next-btn').style.display='inline-block';
+}
+
+// 初期化
+nextQuestion();
+</script>
+</body>
+</html>
