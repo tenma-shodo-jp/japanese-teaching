@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日本語教育史 年表クイズ</title>
+<style>
+  :root {
+    --primary: #1e6b4f;
+    --primary-light: #e8f5f0;
+    --primary-dark: #145540;
+    --accent: #d97706;
+    --success: #16a34a;
+    --danger: #dc2626;
+    --bg: #f7faf9;
+    --card: #ffffff;
+    --text: #1e293b;
+    --text-light: #64748b;
+    --border: #e2e8f0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+  .container { max-width: 760px; margin: 0 auto; padding: 20px; }
+
+  .header {
+    text-align: center;
+    padding: 28px 0;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .header h1 { font-size: 1.5rem; color: var(--primary); margin-bottom: 6px; }
+  .header p { color: var(--text-light); font-size: 0.9rem; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+
+  /* スタート画面 */
+  .start-panel { text-align: center; }
+  .start-panel h2 { color: var(--primary-dark); margin-bottom: 12px; font-size: 1.2rem; }
+  .start-panel p { color: var(--text-light); margin-bottom: 20px; font-size: 0.92rem; }
+  .field { margin-bottom: 18px; text-align: left; }
+  .field label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; }
+  .field select {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 1rem; background: #fff; color: var(--text);
+  }
+
+  .btn {
+    display: inline-block; border: none; cursor: pointer;
+    background: var(--primary); color: #fff;
+    padding: 12px 28px; border-radius: 8px;
+    font-size: 1rem; font-weight: 600; transition: background 0.15s;
+  }
+  .btn:hover { background: var(--primary-dark); }
+  .btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+  .btn-secondary { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+  .btn-secondary:hover { background: var(--primary-light); }
+
+  /* 進捗バー */
+  .progress-wrap { margin-bottom: 18px; }
+  .progress-meta {
+    display: flex; justify-content: space-between;
+    font-size: 0.82rem; color: var(--text-light); margin-bottom: 6px;
+  }
+  .progress-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--primary); width: 0; transition: width 0.3s; }
+
+  /* 問題 */
+  .q-type-tag {
+    display: inline-block; font-size: 0.72rem; font-weight: 700;
+    background: var(--primary-light); color: var(--primary);
+    padding: 3px 10px; border-radius: 20px; margin-bottom: 12px;
+  }
+  .q-text { font-size: 1.12rem; font-weight: 600; margin-bottom: 18px; }
+  .q-text .year { color: var(--accent); }
+
+  .choices { display: flex; flex-direction: column; gap: 10px; }
+  .choice {
+    text-align: left; padding: 13px 16px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    background: #fff; cursor: pointer; font-size: 0.98rem;
+    transition: all 0.12s; color: var(--text);
+  }
+  .choice:hover:not(:disabled) { border-color: var(--primary); background: var(--primary-light); }
+  .choice:disabled { cursor: default; }
+  .choice.correct { border-color: var(--success); background: #f0fdf4; color: #14532d; font-weight: 600; }
+  .choice.wrong { border-color: var(--danger); background: #fef2f2; color: #7f1d1d; }
+  .choice .mark { font-weight: 700; margin-right: 4px; }
+
+  /* 並べ替え問題 */
+  .order-hint { font-size: 0.85rem; color: var(--text-light); margin-bottom: 12px; }
+  .order-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .order-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 14px; border: 1.5px solid var(--border);
+    border-radius: 10px; background: #fff;
+  }
+  .order-item .num {
+    flex: 0 0 26px; height: 26px; border-radius: 50%;
+    background: var(--primary); color: #fff; font-weight: 700; font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .order-item .label { flex: 1; font-size: 0.95rem; }
+  .order-btns { display: flex; flex-direction: column; gap: 2px; }
+  .order-btns button {
+    border: 1px solid var(--border); background: #fff; cursor: pointer;
+    width: 26px; height: 18px; line-height: 1; border-radius: 4px;
+    font-size: 0.7rem; color: var(--text-light);
+  }
+  .order-btns button:hover { background: var(--primary-light); border-color: var(--primary); }
+  .order-item.correct { border-color: var(--success); background: #f0fdf4; }
+  .order-item.wrong { border-color: var(--danger); background: #fef2f2; }
+
+  /* 解説 */
+  .explanation {
+    margin-top: 18px; padding: 14px 16px;
+    background: #fffbeb; border-left: 4px solid var(--accent);
+    border-radius: 6px; font-size: 0.9rem; display: none;
+  }
+  .explanation.show { display: block; }
+  .explanation .verdict { font-weight: 700; margin-bottom: 6px; }
+  .explanation .verdict.ok { color: var(--success); }
+  .explanation .verdict.ng { color: var(--danger); }
+
+  .actions { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
+
+  /* 結果 */
+  .result { text-align: center; }
+  .result h2 { color: var(--primary-dark); margin-bottom: 8px; }
+  .score-big { font-size: 2.6rem; font-weight: 800; color: var(--primary); margin: 10px 0; }
+  .score-sub { color: var(--text-light); margin-bottom: 6px; }
+  .result-msg { margin: 16px 0 24px; font-size: 1rem; }
+  .review { text-align: left; margin-top: 24px; }
+  .review h3 { font-size: 1rem; color: var(--primary-dark); margin-bottom: 12px; }
+  .review-item {
+    padding: 12px 14px; border: 1px solid var(--border);
+    border-radius: 8px; margin-bottom: 10px; font-size: 0.88rem;
+  }
+  .review-item .ri-q { font-weight: 600; margin-bottom: 4px; }
+  .review-item .ri-status { font-size: 0.8rem; font-weight: 700; }
+  .review-item .ri-status.ok { color: var(--success); }
+  .review-item .ri-status.ng { color: var(--danger); }
+
+  .footer { text-align: center; color: var(--text-light); font-size: 0.78rem; margin-top: 28px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>日本語教育史 年表クイズ</h1>
+    <p>年号・出来事・背景をクイズ形式で確認できます</p>
+  </div>
+
+  <!-- スタート画面 -->
+  <div id="startScreen" class="card start-panel">
+    <h2>クイズを始める</h2>
+    <p>年表から自動で問題を作ります。西暦あて・出来事あて・並べ替え・豆知識の4タイプが混ざって出題されます。</p>
+    <div class="field">
+      <label for="countSelect">問題数</label>
+      <select id="countSelect">
+        <option value="5">5問（さくっと）</option>
+        <option value="10" selected>10問（おすすめ）</option>
+        <option value="15">15問</option>
+        <option value="all">全部（できるだけ多く）</option>
+      </select>
+    </div>
+    <button class="btn" id="startBtn">スタート</button>
+  </div>
+
+  <!-- クイズ画面 -->
+  <div id="quizScreen" class="card hidden">
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span id="qCounter">問題 1 / 10</span>
+        <span id="scoreCounter">正解 0</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+    <div id="questionArea"></div>
+    <div class="explanation" id="explanation"></div>
+    <div class="actions">
+      <button class="btn hidden" id="nextBtn">次へ</button>
+    </div>
+  </div>
+
+  <!-- 結果画面 -->
+  <div id="resultScreen" class="card result hidden">
+    <h2>結果</h2>
+    <div class="score-big" id="finalScore">0 / 0</div>
+    <div class="score-sub" id="finalPercent">正答率 0%</div>
+    <div class="result-msg" id="resultMsg"></div>
+    <button class="btn" id="retryBtn">もう一度</button>
+    <div class="review" id="reviewArea"></div>
+  </div>
+
+  <div class="footer">日本語教育史 年表クイズ ・ 学習用</div>
+</div>
+
+<script>
+// ===== 年表データ（年表.md から）=====
+const TIMELINE = [
+  { year: 1962, cat: "学", event: "日本語教育学会 設立", note: "戦後の経済成長で来日外国人が増え、日本語を外国語として教える専門性が意識され始めた時期。国語教育とは別物として日本語教育を確立する出発点。" },
+  { year: 1983, cat: "留", event: "留学生受入れ10万人計画（中曽根内閣が提唱）", note: "当時の留学生は約1万人。目標の10万人は当時のフランス並みを意識した数字。日本語学校が急増するきっかけになった。" },
+  { year: 1986, cat: "学", event: "日本語教育能力検定試験 開始", note: "日本語学校の急増で教える側の質の担保が課題に。国家資格ではない民間資格だが、長く教師の実力の目安とされた。" },
+  { year: 1988, cat: "留", event: "上海事件", note: "上海の日本総領事館に就学生ビザ申請が殺到し社会問題化。量を増やす政策のひずみが噴き出し、審査厳格化の転機になった。" },
+  { year: 1989, cat: "就", event: "入管法改正（日系人の在留資格「定住者」を新設）", note: "バブル期の人手不足が背景。日系ブラジル人・ペルー人などが定住者として就労可能に。1990年施行。" },
+  { year: 1990, cat: "就", event: "改正入管法 施行", note: "日系人の就労が事実上可能に。群馬県大泉町や愛知・静岡の集住地域が形成され、地域日本語教育が本格化した。" },
+  { year: 1990, cat: "学", event: "日本語教育振興協会（日振協）設立", note: "上海事件などで問われた日本語学校の質を業界側で審査・認定する仕組みとして発足。のちに国の認定制度へ役割を引き継ぐ。" },
+  { year: 1993, cat: "就", event: "技能実習制度 創設", note: "建前は途上国への技能移転（国際貢献）。実態は人手不足を補う労働力として機能し、建前と実態の乖離が指摘され続けた。" },
+  { year: 2003, cat: "留", event: "留学生10万人計画 達成", note: "1983年の目標を約20年かけて達成。数の上では成功したが、質や卒業後の進路が新たな論点になった。" },
+  { year: 2008, cat: "留", event: "留学生30万人計画", note: "福田内閣が提唱。少子化・グローバル人材確保を背景に、留学生を日本社会・産業の担い手として位置づける方向へ。" },
+  { year: 2016, cat: "学", event: "日本語教育推進議員連盟 発足", note: "在留外国人と日本語を母語としない子どもの増加が背景。議員立法で法整備を進める動きが推進法に結実する。" },
+  { year: 2019, cat: "留", event: "留学生30万人計画 達成", note: "目標の2020年より前倒しで達成。一方で在籍管理のずさんさも表面化し、機関の質の管理が急務になった。" },
+  { year: 2019, cat: "就", event: "特定技能の在留資格 創設", note: "深刻な人手不足を受け、技能実習と違い最初から労働力の受入れを正面から認めた在留資格。日本語能力の要件が課された。" },
+  { year: 2019, cat: "学", event: "日本語教育推進法 公布・施行", note: "議員立法で成立。国・自治体・雇用主に日本語教育の責務を明記した理念法で、日本語教育を国の責任と位置づけた。" },
+  { year: 2020, cat: "学", event: "日本語教育推進の基本方針 閣議決定", note: "推進法を受けた具体的な行動指針。理念法→基本方針→認定・資格制度と、法律が制度に落とし込まれていく流れ。" },
+  { year: 2023, cat: "学", event: "日本語教育機関認定法 成立", note: "留学生の在籍管理問題への反省が背景。日本語学校を国が認定し、教師を登録日本語教員として国家資格化する枠組み。" },
+  { year: 2024, cat: "学", event: "認定日本語教育機関制度・登録日本語教員制度 施行", note: "日本語教師がついに国家資格に。日振協が担ってきた質の担保の役割を国の制度が正式に引き継いだ。" },
+  { year: 2024, cat: "就", event: "育成就労制度 創設（改正入管法）", note: "国際貢献の建前を掲げた技能実習を廃止し、人材確保と育成を正面から目的に据える転換。特定技能への移行を前提に設計。" },
+  { year: 2027, cat: "就", event: "育成就労制度 施行", note: "30年以上続いた技能実習制度がここで終了。育成就労→特定技能というキャリアの道筋が制度化される見込み。" }
+];
+
+// ===== ユーティリティ =====
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function sample(arr, n) { return shuffle(arr).slice(0, n); }
+function uniqueYears() { return [...new Set(TIMELINE.map(t => t.year))]; }
+
+// ===== 問題生成 =====
+// タイプ1: 西暦 → 出来事
+function genYearToEvent() {
+  const target = TIMELINE[Math.floor(Math.random() * TIMELINE.length)];
+  const distractors = sample(TIMELINE.filter(t => t.event !== target.event), 3).map(t => t.event);
+  const choices = shuffle([target.event, ...distractors]);
+  return {
+    type: "西暦 → 出来事",
+    html: `<span class="year">${target.year}年</span>に起きた出来事はどれ？`,
+    choices,
+    answer: choices.indexOf(target.event),
+    note: target.note,
+    reviewQ: `${target.year}年の出来事は？`
+  };
+}
+// タイプ2: 出来事 → 西暦
+function genEventToYear() {
+  const target = TIMELINE[Math.floor(Math.random() * TIMELINE.length)];
+  const years = uniqueYears().filter(y => y !== target.year);
+  const distractors = sample(years, 3);
+  const choices = shuffle([target.year, ...distractors]).map(y => `${y}年`);
+  return {
+    type: "出来事 → 西暦",
+    html: `「${target.event}」は何年？`,
+    choices,
+    answer: choices.indexOf(`${target.year}年`),
+    note: target.note,
+    reviewQ: `「${target.event}」は何年？`
+  };
+}
+// タイプ3: 背景・豆知識 → 出来事
+function genNoteToEvent() {
+  const withNote = TIMELINE.filter(t => t.note);
+  const target = withNote[Math.floor(Math.random() * withNote.length)];
+  const distractors = sample(TIMELINE.filter(t => t.event !== target.event), 3).map(t => t.event);
+  const choices = shuffle([target.event, ...distractors]);
+  return {
+    type: "背景・豆知識",
+    html: `次の説明に当てはまる出来事はどれ？<br><span style="font-weight:400;font-size:0.95rem;color:var(--text-light)">「${target.note}」</span>`,
+    choices,
+    answer: choices.indexOf(target.event),
+    note: `${target.year}年：${target.event}`,
+    reviewQ: `豆知識から出来事をあてる問題`
+  };
+}
+// タイプ4: 年代順の並べ替え
+function genOrdering() {
+  // 年が異なる4件を選ぶ
+  const byYear = {};
+  TIMELINE.forEach(t => { if (!byYear[t.year]) byYear[t.year] = t; });
+  const picks = sample(Object.values(byYear), 4);
+  const correct = picks.slice().sort((a, b) => a.year - b.year);
+  return {
+    type: "年代順に並べ替え",
+    isOrder: true,
+    html: "次の出来事を古い順（上が古い）に並べ替えてください。",
+    items: shuffle(picks).map(t => ({ label: t.event, year: t.year })),
+    correctOrder: correct.map(t => t.event),
+    note: "正しい順： " + correct.map(t => `${t.year} ${t.event}`).join(" → ")
+  };
+}
+
+const GENERATORS = [genYearToEvent, genEventToYear, genNoteToEvent, genOrdering];
+
+function buildQuiz(count) {
+  const questions = [];
+  // タイプが偏らないよう順番に回しつつ、重複問題文はある程度許容
+  let gi = 0;
+  const order = shuffle([0, 1, 2, 3]);
+  for (let i = 0; i < count; i++) {
+    const gen = GENERATORS[order[gi % order.length]];
+    questions.push(gen());
+    gi++;
+  }
+  return questions;
+}
+
+// ===== 状態 =====
+let quiz = [];
+let current = 0;
+let score = 0;
+let answered = false;
+let reviewLog = [];
+
+// ===== DOM =====
+const startScreen = document.getElementById('startScreen');
+const quizScreen = document.getElementById('quizScreen');
+const resultScreen = document.getElementById('resultScreen');
+const questionArea = document.getElementById('questionArea');
+const explanation = document.getElementById('explanation');
+const nextBtn = document.getElementById('nextBtn');
+const qCounter = document.getElementById('qCounter');
+const scoreCounter = document.getElementById('scoreCounter');
+const progressFill = document.getElementById('progressFill');
+
+document.getElementById('startBtn').addEventListener('click', startQuiz);
+document.getElementById('retryBtn').addEventListener('click', () => {
+  resultScreen.classList.add('hidden');
+  startScreen.classList.remove('hidden');
+});
+nextBtn.addEventListener('click', () => {
+  current++;
+  if (current >= quiz.length) showResult();
+  else renderQuestion();
+});
+
+function startQuiz() {
+  const sel = document.getElementById('countSelect').value;
+  const count = sel === 'all' ? 18 : parseInt(sel, 10);
+  quiz = buildQuiz(count);
+  current = 0; score = 0; reviewLog = [];
+  startScreen.classList.add('hidden');
+  resultScreen.classList.add('hidden');
+  quizScreen.classList.remove('hidden');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  answered = false;
+  explanation.className = 'explanation';
+  explanation.innerHTML = '';
+  nextBtn.classList.add('hidden');
+  const q = quiz[current];
+
+  qCounter.textContent = `問題 ${current + 1} / ${quiz.length}`;
+  scoreCounter.textContent = `正解 ${score}`;
+  progressFill.style.width = `${(current / quiz.length) * 100}%`;
+
+  if (q.isOrder) renderOrderQuestion(q);
+  else renderChoiceQuestion(q);
+}
+
+function renderChoiceQuestion(q) {
+  const marks = ['A', 'B', 'C', 'D'];
+  let html = `<div class="q-type-tag">${q.type}</div>`;
+  html += `<div class="q-text">${q.html}</div>`;
+  html += `<div class="choices">`;
+  q.choices.forEach((c, i) => {
+    html += `<button class="choice" data-i="${i}"><span class="mark">${marks[i]}.</span>${c}</button>`;
+  });
+  html += `</div>`;
+  questionArea.innerHTML = html;
+
+  questionArea.querySelectorAll('.choice').forEach(btn => {
+    btn.addEventListener('click', () => selectChoice(parseInt(btn.dataset.i, 10), q));
+  });
+}
+
+function selectChoice(i, q) {
+  if (answered) return;
+  answered = true;
+  const btns = questionArea.querySelectorAll('.choice');
+  btns.forEach(b => b.disabled = true);
+  const isCorrect = i === q.answer;
+  btns[q.answer].classList.add('correct');
+  if (!isCorrect) btns[i].classList.add('wrong');
+  if (isCorrect) score++;
+
+  scoreCounter.textContent = `正解 ${score}`;
+  showExplanation(isCorrect, q.note);
+  reviewLog.push({ q: q.reviewQ || q.type, correct: isCorrect });
+  nextBtn.classList.remove('hidden');
+  nextBtn.textContent = current + 1 >= quiz.length ? '結果を見る' : '次へ';
+}
+
+// 並べ替え問題
+let orderState = [];
+function renderOrderQuestion(q) {
+  orderState = q.items.slice();
+  let html = `<div class="q-type-tag">${q.type}</div>`;
+  html += `<div class="q-text">${q.html}</div>`;
+  html += `<div class="order-hint">▲▼ボタンで並べ替えて「決定」を押してください</div>`;
+  html += `<div class="order-list" id="orderList"></div>`;
+  html += `<button class="btn btn-secondary" id="orderSubmit">決定</button>`;
+  questionArea.innerHTML = html;
+  drawOrderList();
+  document.getElementById('orderSubmit').addEventListener('click', () => submitOrder(q));
+}
+
+function drawOrderList(disabled) {
+  const list = document.getElementById('orderList');
+  list.innerHTML = '';
+  orderState.forEach((it, idx) => {
+    const row = document.createElement('div');
+    row.className = 'order-item';
+    row.innerHTML = `
+      <div class="num">${idx + 1}</div>
+      <div class="label">${it.label}</div>
+      <div class="order-btns">
+        <button data-dir="up" data-idx="${idx}" ${idx === 0 || disabled ? 'disabled' : ''}>▲</button>
+        <button data-dir="down" data-idx="${idx}" ${idx === orderState.length - 1 || disabled ? 'disabled' : ''}>▼</button>
+      </div>`;
+    list.appendChild(row);
+  });
+  if (!disabled) {
+    list.querySelectorAll('button').forEach(b => {
+      b.addEventListener('click', () => {
+        const idx = parseInt(b.dataset.idx, 10);
+        const dir = b.dataset.dir;
+        const swap = dir === 'up' ? idx - 1 : idx + 1;
+        [orderState[idx], orderState[swap]] = [orderState[swap], orderState[idx]];
+        drawOrderList();
+      });
+    });
+  }
+}
+
+function submitOrder(q) {
+  if (answered) return;
+  answered = true;
+  const userOrder = orderState.map(it => it.label);
+  const isCorrect = JSON.stringify(userOrder) === JSON.stringify(q.correctOrder);
+  if (isCorrect) score++;
+  scoreCounter.textContent = `正解 ${score}`;
+
+  // ボタンを無効化してから色付け（順序を変えられないようにする）
+  drawOrderList(true);
+  document.getElementById('orderSubmit').disabled = true;
+  const rows = document.getElementById('orderList').querySelectorAll('.order-item');
+  orderState.forEach((it, idx) => {
+    if (it.label === q.correctOrder[idx]) rows[idx].classList.add('correct');
+    else rows[idx].classList.add('wrong');
+  });
+
+  showExplanation(isCorrect, q.note);
+  reviewLog.push({ q: '年代順の並べ替え', correct: isCorrect });
+  nextBtn.classList.remove('hidden');
+  nextBtn.textContent = current + 1 >= quiz.length ? '結果を見る' : '次へ';
+}
+
+function showExplanation(isCorrect, note) {
+  explanation.className = 'explanation show';
+  explanation.innerHTML =
+    `<div class="verdict ${isCorrect ? 'ok' : 'ng'}">${isCorrect ? '◯ 正解！' : '× 不正解'}</div>` +
+    `<div>${note}</div>`;
+}
+
+function showResult() {
+  quizScreen.classList.add('hidden');
+  resultScreen.classList.remove('hidden');
+  progressFill.style.width = '100%';
+  const total = quiz.length;
+  const pct = Math.round((score / total) * 100);
+  document.getElementById('finalScore').textContent = `${score} / ${total}`;
+  document.getElementById('finalPercent').textContent = `正答率 ${pct}%`;
+
+  let msg;
+  if (pct === 100) msg = '満点！年表バッチリです。';
+  else if (pct >= 80) msg = 'よくできました。あと少しで完璧です。';
+  else if (pct >= 60) msg = '合格ライン。間違えたところを復習しましょう。';
+  else msg = '年表をもう一度見直してから再挑戦してみましょう。';
+  document.getElementById('resultMsg').textContent = msg;
+
+  // レビュー
+  let rhtml = '<h3>今回の結果</h3>';
+  reviewLog.forEach((r, i) => {
+    rhtml += `<div class="review-item">
+      <div class="ri-q">${i + 1}. ${r.q}</div>
+      <div class="ri-status ${r.correct ? 'ok' : 'ng'}">${r.correct ? '◯ 正解' : '× 不正解'}</div>
+    </div>`;
+  });
+  document.getElementById('reviewArea').innerHTML = rhtml;
+}
+</script>
+</body>
+</html>
