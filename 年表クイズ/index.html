@@ -166,13 +166,14 @@
   <!-- スタート画面 -->
   <div id="startScreen" class="card start-panel">
     <h2>クイズを始める</h2>
-    <p>年表から自動で問題を作ります。西暦あて・出来事あて・並べ替え・豆知識の4タイプが混ざって出題されます。</p>
+    <p>年表から自動で問題を作ります。西暦あて・出来事あて・並べ替え・豆知識・人物・教授法・参照枠・分類あてなど、12タイプが混ざって出題されます。</p>
     <div class="field">
       <label for="countSelect">問題数</label>
       <select id="countSelect">
         <option value="5">5問（さくっと）</option>
         <option value="10" selected>10問（おすすめ）</option>
         <option value="15">15問</option>
+        <option value="20">20問（じっくり）</option>
         <option value="all">全部（できるだけ多く）</option>
       </select>
     </div>
@@ -211,25 +212,77 @@
 <script>
 // ===== 年表データ（年表.md から）=====
 const TIMELINE = [
+  { year: 1895, cat: "教", event: "伊沢修二、台湾で日本語教育を開始（芝山巌学堂）", note: "日清戦争で台湾を領有した直後、台湾総督府初代学務部長の伊沢修二が日本語教育を統治の最重要政策に据えた。日本語教育史の実質的な出発点。" },
+  { year: 1897, cat: "教", event: "山口喜一郎、台湾で直接法による日本語教育（この頃）", note: "フランス人グアンの教授法を応用し、日本語だけで日本語を教える直接法を確立。直接法の父といえる存在。" },
+  { year: 1946, cat: "学", event: "当用漢字表・現代かなづかい 告示", note: "戦後の国語表記改革。漢字を1850字に制限し、かなづかいを現代語音ベースに。日本語教育の土台となる表記の標準化。" },
+  { year: 1948, cat: "学", event: "国立国語研究所（NINJAL）設立", note: "日本語・国語に関する研究の中核機関。日本語教育の基礎データや調査を支える存在。" },
+  { year: 1948, cat: "教", event: "長沼直兄、東京日本語学校（長沼スクール）設立", note: "パーマーのオーラル・メソッドを応用した長沼メソッド（問答法）で知られる。戦後の民間日本語教育機関の草分け。" },
   { year: 1962, cat: "学", event: "日本語教育学会 設立", note: "戦後の経済成長で来日外国人が増え、日本語を外国語として教える専門性が意識され始めた時期。国語教育とは別物として日本語教育を確立する出発点。" },
+  { year: 1972, cat: "学", event: "国際交流基金（JF）設立", note: "海外の日本語普及・文化交流を担う中核機関。外務省所管の特殊法人として発足し、2003年に独立行政法人化。海外日本語教育の司令塔。" },
   { year: 1983, cat: "留", event: "留学生受入れ10万人計画（中曽根内閣が提唱）", note: "当時の留学生は約1万人。目標の10万人は当時のフランス並みを意識した数字。日本語学校が急増するきっかけになった。" },
+  { year: 1984, cat: "学", event: "日本語能力試験（JLPT）開始", note: "国際交流基金と日本国際教育支援協会が実施する、学ぶ側の日本語力を測る世界的な試験。教える側の日本語教育能力検定試験(1986)と混同注意。" },
   { year: 1986, cat: "学", event: "日本語教育能力検定試験 開始", note: "日本語学校の急増で教える側の質の担保が課題に。国家資格ではない民間資格だが、長く教師の実力の目安とされた。" },
   { year: 1988, cat: "留", event: "上海事件", note: "上海の日本総領事館に就学生ビザ申請が殺到し社会問題化。量を増やす政策のひずみが噴き出し、審査厳格化の転機になった。" },
   { year: 1989, cat: "就", event: "入管法改正（日系人の在留資格「定住者」を新設）", note: "バブル期の人手不足が背景。日系ブラジル人・ペルー人などが定住者として就労可能に。1990年施行。" },
   { year: 1990, cat: "就", event: "改正入管法 施行", note: "日系人の就労が事実上可能に。群馬県大泉町や愛知・静岡の集住地域が形成され、地域日本語教育が本格化した。" },
   { year: 1990, cat: "学", event: "日本語教育振興協会（日振協）設立", note: "上海事件などで問われた日本語学校の質を業界側で審査・認定する仕組みとして発足。のちに国の認定制度へ役割を引き継ぐ。" },
   { year: 1993, cat: "就", event: "技能実習制度 創設", note: "建前は途上国への技能移転（国際貢献）。実態は人手不足を補う労働力として機能し、建前と実態の乖離が指摘され続けた。" },
+  { year: 2001, cat: "学", event: "CEFR（ヨーロッパ言語共通参照枠）発表", note: "欧州評議会が発表。言語の熟達度をA1〜C2の6レベルで示し、Can-doで能力を記述。複言語・複文化主義が理念。参照枠やJFスタンダードのモデル。" },
   { year: 2003, cat: "留", event: "留学生10万人計画 達成", note: "1983年の目標を約20年かけて達成。数の上では成功したが、質や卒業後の進路が新たな論点になった。" },
   { year: 2008, cat: "留", event: "留学生30万人計画", note: "福田内閣が提唱。少子化・グローバル人材確保を背景に、留学生を日本社会・産業の担い手として位置づける方向へ。" },
+  { year: 2010, cat: "学", event: "JF日本語教育スタンダード 発表", note: "国際交流基金がCEFRを参考に作成した日本語教育版のものさし。JF Can-doで日本語で何ができるかを示す。教材『まるごと』に反映。" },
+  { year: 2014, cat: "教", event: "「特別の教育課程」による日本語指導が制度化", note: "日本語指導が必要な児童生徒への指導を、正規の教育課程として編成・実施できるようになった。学校現場の日本語教育が正式に位置づけられた画期。" },
   { year: 2016, cat: "学", event: "日本語教育推進議員連盟 発足", note: "在留外国人と日本語を母語としない子どもの増加が背景。議員立法で法整備を進める動きが推進法に結実する。" },
   { year: 2019, cat: "留", event: "留学生30万人計画 達成", note: "目標の2020年より前倒しで達成。一方で在籍管理のずさんさも表面化し、機関の質の管理が急務になった。" },
   { year: 2019, cat: "就", event: "特定技能の在留資格 創設", note: "深刻な人手不足を受け、技能実習と違い最初から労働力の受入れを正面から認めた在留資格。日本語能力の要件が課された。" },
   { year: 2019, cat: "学", event: "日本語教育推進法 公布・施行", note: "議員立法で成立。国・自治体・雇用主に日本語教育の責務を明記した理念法で、日本語教育を国の責任と位置づけた。" },
   { year: 2020, cat: "学", event: "日本語教育推進の基本方針 閣議決定", note: "推進法を受けた具体的な行動指針。理念法→基本方針→認定・資格制度と、法律が制度に落とし込まれていく流れ。" },
+  { year: 2021, cat: "学", event: "「日本語教育の参照枠」取りまとめ", note: "文化審議会国語分科会がCEFRを参考に作成した日本語の共通のものさし。6レベル×言語活動でCan doを示す。認定日本語教育機関のカリキュラムの土台。" },
   { year: 2023, cat: "学", event: "日本語教育機関認定法 成立", note: "留学生の在籍管理問題への反省が背景。日本語学校を国が認定し、教師を登録日本語教員として国家資格化する枠組み。" },
   { year: 2024, cat: "学", event: "認定日本語教育機関制度・登録日本語教員制度 施行", note: "日本語教師がついに国家資格に。日振協が担ってきた質の担保の役割を国の制度が正式に引き継いだ。" },
   { year: 2024, cat: "就", event: "育成就労制度 創設（改正入管法）", note: "国際貢献の建前を掲げた技能実習を廃止し、人材確保と育成を正面から目的に据える転換。特定技能への移行を前提に設計。" },
   { year: 2027, cat: "就", event: "育成就労制度 施行", note: "30年以上続いた技能実習制度がここで終了。育成就労→特定技能というキャリアの道筋が制度化される見込み。" }
+];
+
+// ===== 人物データ（人物クイズ用）=====
+const PEOPLE = [
+  { name: "伊沢修二", achievement: "台湾総督府 初代学務部長として、台湾で日本語教育を統治の最重要政策に据え、芝山巌学堂を設立した", work: "『台湾教育意見書』／芝山巌学堂" },
+  { name: "山口喜一郎", achievement: "グアン・メソッドを応用した「直接法」を確立し、日本語だけで日本語を教える指導を実践した", work: "『日本語教授法原論』／直接法" },
+  { name: "大出正篤", achievement: "満州で「速成式教授法」を実践し、媒介語を活用して短期間で日本語を習得させる方法をとった", work: "『標準日本語読本』／速成式教授法" },
+  { name: "長沼直兄", achievement: "パーマーのオーラル・メソッドを応用した「長沼メソッド（問答法）」で知られ、東京日本語学校を設立した", work: "長沼メソッド／問答法" },
+  { name: "パーマー", achievement: "オーラル・メソッドを提唱し、来日して英語教授研究所（IRET）を設立。音声（聞く・話す）を重視した", work: "オーラル・メソッド／音声重視" },
+  { name: "フリーズ", achievement: "ミシガン大学でオーディオリンガル・メソッドを理論化した。構造言語学を基盤にパターン練習を重視", work: "オーディオリンガル／ミシガン・メソッド" },
+  { name: "アッシャー", achievement: "全身反応教授法（TPR）を提唱し、教師の命令に身体を動かして反応しながら言語を習得させた", work: "TPR／全身反応" },
+  { name: "クラッシェン", achievement: "第二言語習得理論（モニターモデル・インプット仮説）を提唱した", work: "インプット仮説／i+1" },
+  { name: "グアン", achievement: "一連の動作を言葉で表現しながら学ぶグアン式（ナチュラル・メソッド）を提唱し、直接法の源流となった", work: "グアン・メソッド／直接法の源流" }
+];
+
+// ===== 教授法データ（教授法クイズ用）=====
+const METHODS = [
+  { name: "文法訳読法", feature: "文法規則を学び、母語との翻訳で読み書きを習得する。会話はあまり重視しない", who: "伝統的な古典教授法" },
+  { name: "直接法（ナチュラル・メソッド）", feature: "媒介語（母語）を使わず、目標言語だけで教える。実物や動作を活用する", who: "グアン、ベルリッツ" },
+  { name: "オーラル・メソッド", feature: "音声（聞く・話す）を第一に置き、文字より先に口頭練習を重視する", who: "パーマー" },
+  { name: "アーミー・メソッド", feature: "兵士に外国語を短期集中で習得させる、口頭練習中心のスパルタ式。オーディオリンガルの前身", who: "第二次大戦中の米陸軍（ASTP）" },
+  { name: "オーディオリンガル・メソッド", feature: "パターン・プラクティス（文型の反復練習）とミムメムが中心。誤りは悪い習慣として避ける", who: "フリーズ（構造言語学＋行動主義）" },
+  { name: "TPR（全身反応教授法）", feature: "教師の命令に身体を動かして反応しながら習得する。聞く力を先に育てる", who: "アッシャー" },
+  { name: "サイレント・ウェイ", feature: "教師は極力沈黙し、学習者が自ら発話・発見する", who: "ガッテーニョ" },
+  { name: "サジェストペディア", feature: "音楽やリラックスした環境で暗示的に学ぶ", who: "ロザノフ" },
+  { name: "ナチュラル・アプローチ", feature: "理解可能なインプットを重視し、話す前に聞いて意味を理解する期間を置く", who: "テレル＋クラッシェン" },
+  { name: "コミュニカティブ・アプローチ", feature: "正確さより伝え合う力を重視し、生教材やロールプレイなど実際の場面での運用を大切にする", who: "1970年代以降" }
+];
+
+// ===== 参照枠データ（参照枠クイズ用）=====
+const FRAMEWORKS = [
+  { name: "CEFR（ヨーロッパ言語共通参照枠）", maker: "欧州評議会（Council of Europe）", year: 2001, feature: "ヨーロッパ発の言語能力の共通ものさし。A1〜C2の6レベルをCan-doで記述し、複言語・複文化主義を理念とする" },
+  { name: "JF日本語教育スタンダード", maker: "国際交流基金（JF）", year: 2010, feature: "CEFRを参考にした日本語教育版のものさし。JF Can-doで日本語で何ができるかを示し、教材『まるごと』に反映された" },
+  { name: "日本語教育の参照枠", maker: "文化審議会国語分科会（国）", year: 2021, feature: "CEFRを参考に国がつくった日本語の共通枠組み。認定日本語教育機関のカリキュラムの基盤になっている" }
+];
+
+// CEFR / 参照枠の6レベル（A/B/Cの3区分）
+const CEFR_LEVELS = [
+  { level: "A（A1・A2）", desc: "基礎段階の言語使用者（身近な話題を簡単に）" },
+  { level: "B（B1・B2）", desc: "自立した言語使用者（自分の考えをある程度まとまって）" },
+  { level: "C（C1・C2）", desc: "熟達した言語使用者（幅広い話題を自在に、母語話者に近い）" }
 ];
 
 // ===== ユーティリティ =====
@@ -306,19 +359,149 @@ function genOrdering() {
   };
 }
 
-const GENERATORS = [genYearToEvent, genEventToYear, genNoteToEvent, genOrdering];
+// タイプ5: 業績 → 人物
+function genAchievementToPerson() {
+  const target = PEOPLE[Math.floor(Math.random() * PEOPLE.length)];
+  const distractors = sample(PEOPLE.filter(p => p.name !== target.name), 3).map(p => p.name);
+  const choices = shuffle([target.name, ...distractors]);
+  return {
+    type: "人物 → 業績",
+    html: `次の業績で知られる人物はだれ？<br><span style="font-weight:400;font-size:0.95rem;color:var(--text-light)">「${target.achievement}」</span>`,
+    choices,
+    answer: choices.indexOf(target.name),
+    note: `${target.name}：${target.achievement}。キーワード：${target.work}`,
+    reviewQ: "業績から人物をあてる問題"
+  };
+}
+// タイプ6: 人物 → 著作・キーワード
+function genPersonToWork() {
+  const target = PEOPLE[Math.floor(Math.random() * PEOPLE.length)];
+  const distractors = sample(PEOPLE.filter(p => p.name !== target.name), 3).map(p => p.work);
+  const choices = shuffle([target.work, ...distractors]);
+  return {
+    type: "人物 → 著作・キーワード",
+    html: `「${target.name}」に関係が深い著作・キーワードはどれ？`,
+    choices,
+    answer: choices.indexOf(target.work),
+    note: `${target.name}：${target.achievement}`,
+    reviewQ: `「${target.name}」の著作・キーワードは？`
+  };
+}
+
+// タイプ7: 特徴 → 教授法
+function genFeatureToMethod() {
+  const target = METHODS[Math.floor(Math.random() * METHODS.length)];
+  const distractors = sample(METHODS.filter(m => m.name !== target.name), 3).map(m => m.name);
+  const choices = shuffle([target.name, ...distractors]);
+  return {
+    type: "教授法 → 特徴",
+    html: `次の特徴をもつ教授法はどれ？<br><span style="font-weight:400;font-size:0.95rem;color:var(--text-light)">「${target.feature}」</span>`,
+    choices,
+    answer: choices.indexOf(target.name),
+    note: `${target.name}：${target.feature}（${target.who}）`,
+    reviewQ: "特徴から教授法をあてる問題"
+  };
+}
+// タイプ8: 教授法 → 提唱者
+function genMethodToWho() {
+  const withWho = METHODS.filter(m => m.who && !m.who.includes("伝統的") && !m.who.includes("以降"));
+  const target = withWho[Math.floor(Math.random() * withWho.length)];
+  const distractors = sample(METHODS.filter(m => m.who !== target.who), 3).map(m => m.who);
+  const choices = shuffle([target.who, ...distractors]);
+  return {
+    type: "教授法 → 提唱者",
+    html: `「${target.name}」を提唱したのは？`,
+    choices,
+    answer: choices.indexOf(target.who),
+    note: `${target.name}：${target.feature}（${target.who}）`,
+    reviewQ: `「${target.name}」の提唱者は？`
+  };
+}
+
+// タイプ9: 参照枠 → 作成主体
+function genFrameworkToMaker() {
+  const target = FRAMEWORKS[Math.floor(Math.random() * FRAMEWORKS.length)];
+  const distractors = sample(FRAMEWORKS.filter(f => f.maker !== target.maker), 2).map(f => f.maker);
+  // 選択肢を4つにするためダミーを足す
+  const extra = ["文部科学省 初等中等教育局", "日本語教育学会"].filter(x => x !== target.maker);
+  const pool = [...distractors, ...extra];
+  const choices = shuffle([target.maker, ...sample(pool, 3)]);
+  return {
+    type: "参照枠 → 作成主体",
+    html: `「${target.name}」を作成したのは？`,
+    choices,
+    answer: choices.indexOf(target.maker),
+    note: `${target.name}：${target.maker}が${target.year}年に発表。${target.feature}`,
+    reviewQ: `「${target.name}」の作成主体は？`
+  };
+}
+// タイプ10: 参照枠 → 発表年
+function genFrameworkToYear() {
+  const target = FRAMEWORKS[Math.floor(Math.random() * FRAMEWORKS.length)];
+  const otherYears = FRAMEWORKS.filter(f => f.year !== target.year).map(f => f.year);
+  const extraYears = [1990, 2019, 2024].filter(y => !FRAMEWORKS.some(f => f.year === y));
+  const pool = [...otherYears, ...extraYears];
+  const choices = shuffle([target.year, ...sample(pool, 3)]).map(y => `${y}年`);
+  return {
+    type: "参照枠 → 発表年",
+    html: `「${target.name}」が発表されたのは？`,
+    choices,
+    answer: choices.indexOf(`${target.year}年`),
+    note: `${target.name}：${target.maker}が${target.year}年に発表。`,
+    reviewQ: `「${target.name}」の発表年は？`
+  };
+}
+// タイプ11: CEFRレベル区分
+function genCefrLevel() {
+  const target = CEFR_LEVELS[Math.floor(Math.random() * CEFR_LEVELS.length)];
+  const distractors = CEFR_LEVELS.filter(l => l.level !== target.level).map(l => l.desc);
+  const choices = shuffle([target.desc, ...distractors]);
+  return {
+    type: "CEFRのレベル区分",
+    html: `CEFR・参照枠の「${target.level}」はどんな段階？`,
+    choices,
+    answer: choices.indexOf(target.desc),
+    note: `${target.level}：${target.desc}。CEFR・参照枠はA（基礎）・B（自立）・C（熟達）の3区分×各2レベル＝6レベル。`,
+    reviewQ: `CEFRの「${target.level}」の説明は？`
+  };
+}
+// タイプ12: 出来事 → 分類（カテゴリ）
+function genEventToCategory() {
+  const catNames = { "学": "日本語教育の学問・制度", "留": "留学生政策", "就": "就労・在留資格", "教": "教授法・人物・教育現場" };
+  const target = TIMELINE[Math.floor(Math.random() * TIMELINE.length)];
+  const allCats = Object.values(catNames);
+  const choices = shuffle(allCats);
+  return {
+    type: "出来事 → 分類",
+    html: `「${target.event}」はどの分野の出来事？`,
+    choices,
+    answer: choices.indexOf(catNames[target.cat]),
+    note: `${target.year}年：${target.event}（分類：${catNames[target.cat]}）`,
+    reviewQ: `「${target.event}」の分野は？`
+  };
+}
+
+const GENERATORS = [genYearToEvent, genEventToYear, genNoteToEvent, genOrdering, genAchievementToPerson, genPersonToWork, genFeatureToMethod, genMethodToWho, genFrameworkToMaker, genFrameworkToYear, genCefrLevel, genEventToCategory];
+
+// 分野グループ（少ない問題数でも各分野が混ざるようにする）
+const GENRE_GROUPS = [
+  { name: "年表", gens: [genYearToEvent, genEventToYear, genNoteToEvent, genOrdering, genEventToCategory] },
+  { name: "人物", gens: [genAchievementToPerson, genPersonToWork] },
+  { name: "教授法", gens: [genFeatureToMethod, genMethodToWho] },
+  { name: "参照枠", gens: [genFrameworkToMaker, genFrameworkToYear, genCefrLevel] }
+];
 
 function buildQuiz(count) {
+  // 各問について、まず分野グループを順番に回して選び、その中の生成関数をランダムに使う。
+  // こうすると少ない問題数でも年表・人物・教授法・参照枠がまんべんなく出る。
+  const groupOrder = shuffle(GENRE_GROUPS.map((_, idx) => idx));
   const questions = [];
-  // タイプが偏らないよう順番に回しつつ、重複問題文はある程度許容
-  let gi = 0;
-  const order = shuffle([0, 1, 2, 3]);
   for (let i = 0; i < count; i++) {
-    const gen = GENERATORS[order[gi % order.length]];
+    const group = GENRE_GROUPS[groupOrder[i % groupOrder.length]];
+    const gen = group.gens[Math.floor(Math.random() * group.gens.length)];
     questions.push(gen());
-    gi++;
   }
-  return questions;
+  return shuffle(questions);
 }
 
 // ===== 状態 =====
@@ -352,7 +535,7 @@ nextBtn.addEventListener('click', () => {
 
 function startQuiz() {
   const sel = document.getElementById('countSelect').value;
-  const count = sel === 'all' ? 18 : parseInt(sel, 10);
+  const count = sel === 'all' ? 36 : parseInt(sel, 10);
   quiz = buildQuiz(count);
   current = 0; score = 0; reviewLog = [];
   startScreen.classList.add('hidden');
