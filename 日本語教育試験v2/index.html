@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日本語教員試験 対策クイズ v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* ===== アイスクリーム・パステルテーマ ===== */
+  :root {
+    --primary: #ff8fab;          /* ストロベリーピンク（メイン） */
+    --primary-light: #ffe4ec;
+    --primary-dark: #e56b8c;
+    --accent: #ffb26b;           /* マンゴーオレンジ */
+    --success: #7bd8b0;          /* ミントグリーン */
+    --success-light: #e3f8ee;
+    --success-text: #2f8f66;
+    --danger: #ff9aa2;           /* ラズベリー */
+    --danger-light: #ffe9eb;
+    --danger-text: #d8586a;
+    --bg1: #fff5f7;              /* バニラ〜いちごミルク */
+    --bg2: #eef7ff;              /* ソーダ */
+    --bg3: #fef6ec;              /* クリーム */
+    --card: #ffffff;
+    --text: #5b4a52;            /* やわらかいチョコ色 */
+    --text-light: #a58f99;
+    --border: #ffe0e8;
+    --radius: 22px;
+    --shadow: 0 10px 30px rgba(255, 143, 171, 0.18);
+    --shadow-soft: 0 6px 18px rgba(180, 160, 200, 0.15);
+    /* 区分（フレーバー）カラー */
+    --f1: #ff9ebb; --f1bg: #fff0f5;   /* ストロベリー */
+    --f2: #ffc078; --f2bg: #fff6e9;   /* マンゴー */
+    --f3: #7fd6c4; --f3bg: #e8faf5;   /* ミント */
+    --f4: #b8a4e3; --f4bg: #f4eefc;   /* ブルーベリー */
+    --f5: #8ec5ff; --f5bg: #ecf5ff;   /* ソーダ */
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+    color: var(--text); line-height: 1.8; min-height: 100vh;
+    background:
+      radial-gradient(circle at 12% 8%, var(--bg1) 0%, transparent 42%),
+      radial-gradient(circle at 88% 12%, var(--bg2) 0%, transparent 40%),
+      radial-gradient(circle at 50% 100%, var(--bg3) 0%, transparent 55%),
+      #fffafc;
+    background-attachment: fixed;
+  }
+  .container { max-width: 860px; margin: 0 auto; padding: 22px; }
+
+  .header { text-align: center; padding: 30px 0 22px; margin-bottom: 22px; }
+  .header h1 {
+    display: inline-block; font-family: 'Mochiy Pop One', 'Zen Maru Gothic', sans-serif;
+    font-size: 1.75rem; font-weight: 400; margin-bottom: 8px; letter-spacing: 0.04em;
+    background: linear-gradient(90deg, #ff8fab, #ffb26b, #7bd8b0, #8ec5ff);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    animation: float-y 3.5s ease-in-out infinite;
+  }
+  .header p { color: var(--text-light); font-size: 0.9rem; }
+
+  .btn {
+    position: relative; display: inline-block; padding: 14px 36px; border: none; border-radius: 999px;
+    font-size: 1rem; font-weight: 400; cursor: pointer; font-family: 'Mochiy Pop One', 'Zen Maru Gothic', sans-serif; overflow: hidden;
+    transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, filter 0.2s ease;
+  }
+  /* グミのツヤ（上部の白いハイライト） */
+  .btn::before {
+    content: ""; position: absolute; top: 5px; left: 12%; right: 12%; height: 38%;
+    background: rgba(255,255,255,0.55); border-radius: 999px; filter: blur(1px); pointer-events: none;
+  }
+  .btn-primary { background: linear-gradient(135deg, #ffb0c8, #ff8fab); color: #fff; box-shadow: 0 10px 20px rgba(255, 143, 171, 0.42), inset 0 -4px 8px rgba(214,95,131,0.25); }
+  .btn-primary:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 16px 28px rgba(255, 143, 171, 0.5), inset 0 -4px 8px rgba(214,95,131,0.25); }
+  .btn-primary:active { transform: scale(0.9, 1.08); box-shadow: 0 6px 12px rgba(255,143,171,0.4); }
+  .btn-secondary { background: #fff; color: var(--primary-dark); box-shadow: var(--shadow-soft), inset 0 -3px 6px rgba(180,160,200,0.12); }
+  .btn-secondary:hover { transform: translateY(-3px) scale(1.03); }
+  .btn-secondary:active { transform: scale(0.92, 1.06); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* ===== 選択画面 ===== */
+  .hint { background: rgba(255,255,255,0.8); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 20px; font-size: 0.88rem; color: var(--text-light); box-shadow: var(--shadow-soft); }
+
+  .section-block { background: var(--card); border: none; border-radius: var(--radius); margin-bottom: 16px; overflow: hidden; box-shadow: var(--shadow-soft); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease; }
+  .section-block:hover { transform: translateY(-3px) scale(1.015); box-shadow: var(--shadow); }
+  .section-block:active { transform: scale(0.99); }
+  .section-bar { display: flex; align-items: center; gap: 11px; padding: 16px 18px; cursor: pointer; }
+  .section-bar input { width: 20px; height: 20px; border-radius: 8px; }
+  .section-bar .s-num { color: #fff; font-weight: 800; font-size: 0.76rem; padding: 3px 12px; border-radius: 999px; }
+  .section-bar .s-name { font-family: 'Mochiy Pop One', 'Zen Maru Gothic', sans-serif; font-weight: 400; flex: 1; font-size: 1.02rem; }
+  .section-bar .s-count { font-size: 0.78rem; color: var(--text-light); background: rgba(255,255,255,0.7); padding: 2px 10px; border-radius: 999px; }
+  .section-bar .s-toggle { font-size: 0.8rem; user-select: none; font-weight: 700; }
+
+  /* 区分ごとのフレーバー配色（並び順で1〜5に対応） */
+  .section-block:nth-of-type(1) .section-bar { background: var(--f1bg); } .section-block:nth-of-type(1) .s-num { background: var(--f1); } .section-block:nth-of-type(1) .s-name, .section-block:nth-of-type(1) .s-toggle { color: #d15f83; } .section-block:nth-of-type(1) input { accent-color: var(--f1); }
+  .section-block:nth-of-type(2) .section-bar { background: var(--f2bg); } .section-block:nth-of-type(2) .s-num { background: var(--f2); } .section-block:nth-of-type(2) .s-name, .section-block:nth-of-type(2) .s-toggle { color: #d68a2e; } .section-block:nth-of-type(2) input { accent-color: var(--f2); }
+  .section-block:nth-of-type(3) .section-bar { background: var(--f3bg); } .section-block:nth-of-type(3) .s-num { background: var(--f3); } .section-block:nth-of-type(3) .s-name, .section-block:nth-of-type(3) .s-toggle { color: #2f9d8a; } .section-block:nth-of-type(3) input { accent-color: var(--f3); }
+  .section-block:nth-of-type(4) .section-bar { background: var(--f4bg); } .section-block:nth-of-type(4) .s-num { background: var(--f4); } .section-block:nth-of-type(4) .s-name, .section-block:nth-of-type(4) .s-toggle { color: #8368c4; } .section-block:nth-of-type(4) input { accent-color: var(--f4); }
+  .section-block:nth-of-type(5) .section-bar { background: var(--f5bg); } .section-block:nth-of-type(5) .s-num { background: var(--f5); } .section-block:nth-of-type(5) .s-name, .section-block:nth-of-type(5) .s-toggle { color: #4d92db; } .section-block:nth-of-type(5) input { accent-color: var(--f5); }
+
+  .item-list { display: none; padding: 6px 18px 16px; }
+  .item-list.open { display: block; }
+  .item-row { display: flex; align-items: center; gap: 11px; padding: 9px 8px; border-bottom: 1.5px dashed var(--border); font-size: 0.92rem; border-radius: 12px; transition: background 0.12s; }
+  .item-row:hover:not(.empty) { background: #fffafc; }
+  .item-row:last-child { border-bottom: none; }
+  .item-row input { width: 17px; height: 17px; border-radius: 6px; accent-color: var(--primary); }
+  .item-row .i-no { color: var(--text-light); font-size: 0.8rem; min-width: 24px; font-weight: 700; }
+  .item-row .i-name { flex: 1; }
+  .item-row .i-count { font-size: 0.76rem; color: var(--text-light); background: #f7f0f4; padding: 2px 9px; border-radius: 999px; }
+  .item-row.empty { opacity: 0.45; }
+
+  .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: center; margin: 22px 0; }
+  .controls .sel-all { font-size: 0.86rem; color: var(--primary-dark); cursor: pointer; font-weight: 700; background: #fff; padding: 7px 16px; border-radius: 999px; box-shadow: var(--shadow-soft); transition: transform 0.12s; }
+  .controls .sel-all:hover { transform: translateY(-1px); }
+  .controls select { padding: 9px 14px; border: 1.5px solid var(--border); border-radius: 999px; font-size: 0.9rem; background: #fff; font-family: inherit; color: var(--text); }
+  .controls label { font-size: 0.86rem; color: var(--text-light); }
+  .start-row { text-align: center; margin-top: 8px; }
+  .selected-info { text-align: center; font-size: 0.86rem; color: var(--primary-dark); margin-top: 12px; font-weight: 700; }
+
+  /* ===== クイズ画面 ===== */
+  .quiz-screen, .result-screen { display: none; }
+  .progress-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding: 12px 18px; background: var(--card); border-radius: 999px; box-shadow: var(--shadow-soft); }
+  .progress-row .num { font-weight: 800; font-size: 0.9rem; white-space: nowrap; color: var(--primary-dark); }
+  .progress-row .bar-wrap { flex: 1; height: 10px; background: #ffe9f0; border-radius: 999px; overflow: hidden; }
+  .progress-row .bar-fill { height: 100%; background: linear-gradient(90deg, #ff9ebb, #ffb26b); border-radius: 999px; transition: width 0.4s ease; }
+  .progress-row .score { font-size: 0.8rem; color: var(--text-light); white-space: nowrap; }
+
+  .q-card { background: var(--card); border: none; border-radius: var(--radius); padding: 30px 26px; margin-bottom: 18px; box-shadow: var(--shadow); animation: jelly-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  /* ぷよぷよ用アニメーション */
+  @keyframes pop { from { opacity: 0; transform: translateY(8px) scale(0.99); } to { opacity: 1; transform: none; } }
+  @keyframes jelly-in {
+    0% { opacity: 0; transform: translateY(14px) scale(0.9); }
+    60% { opacity: 1; transform: translateY(-4px) scale(1.03); }
+    80% { transform: translateY(0) scale(0.98); }
+    100% { transform: translateY(0) scale(1); }
+  }
+  @keyframes jelly-bounce {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.12, 0.86); }
+    55% { transform: scale(0.94, 1.06); }
+    75% { transform: scale(1.03, 0.98); }
+    100% { transform: scale(1); }
+  }
+  @keyframes float-y {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  @keyframes wobble {
+    0%, 100% { transform: rotate(-1.5deg); }
+    50% { transform: rotate(1.5deg); }
+  }
+  .q-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .q-sec-tag { display: inline-block; font-size: 0.72rem; font-weight: 800; background: var(--f2bg); color: var(--accent); border: 1.5px solid #ffe0bd; padding: 4px 12px; border-radius: 999px; }
+  .q-text { font-family: 'Mochiy Pop One', 'Zen Maru Gothic', sans-serif; font-size: 1.12rem; line-height: 2; margin-bottom: 6px; font-weight: 400; }
+
+  .choices { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+  .choice { text-align: left; padding: 16px 20px; border: 2.5px solid var(--border); border-radius: 20px; background: #fff; cursor: pointer; font-size: 1rem; font-family: inherit; color: var(--text); box-shadow: 0 4px 0 rgba(255,224,232,0.9); transition: transform 0.26s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.15s, background 0.15s, box-shadow 0.15s; }
+  .choice:hover:not(:disabled) { border-color: var(--primary); background: var(--primary-light); transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 0 rgba(255,180,200,0.7); }
+  .choice:active:not(:disabled) { transform: scale(0.96, 1.04); box-shadow: 0 2px 0 rgba(255,180,200,0.7); }
+  .choice:disabled { cursor: default; box-shadow: none; }
+  .choice.correct { border-color: var(--success); background: var(--success-light); color: var(--success-text); font-weight: 800; box-shadow: 0 4px 0 rgba(123,216,176,0.5); animation: jelly-bounce 0.6s ease; }
+  .choice.wrong { border-color: var(--danger); background: var(--danger-light); color: var(--danger-text); box-shadow: 0 4px 0 rgba(255,154,162,0.5); animation: wobble 0.4s ease; }
+  .choice .mark { font-weight: 800; margin-right: 8px; color: var(--primary); }
+  .choice.correct .mark { color: var(--success); }
+  .choice.wrong .mark { color: var(--danger); }
+
+  .feedback { margin-top: 18px; padding: 16px 20px; border-radius: 18px; font-size: 0.92rem; display: none; animation: jelly-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .feedback.correct { background: var(--success-light); color: var(--success-text); border: 1.5px solid #b6ecd3; }
+  .feedback.wrong { background: var(--danger-light); color: var(--danger-text); border: 1.5px solid #ffcdd2; }
+  .feedback .fb-title { font-weight: 800; margin-bottom: 4px; font-size: 1rem; }
+
+  .nav-row { text-align: center; margin-top: 6px; }
+
+  /* ===== 結果画面 ===== */
+  .result-card { background: var(--card); border: none; border-radius: var(--radius); padding: 36px 26px; margin-bottom: 20px; text-align: center; box-shadow: var(--shadow); }
+  .result-score { display: inline-block; font-family: 'Mochiy Pop One', sans-serif; font-size: 3.6rem; font-weight: 400; background: linear-gradient(135deg, #ff8fab, #ffb26b); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: jelly-bounce 0.7s ease; }
+  .result-score span { font-size: 1.3rem; color: var(--text-light); -webkit-text-fill-color: var(--text-light); }
+  .result-msg { font-size: 1.02rem; margin: 12px 0; font-weight: 700; }
+  .review { text-align: left; margin-top: 8px; }
+  .review h3 { font-size: 0.98rem; margin-bottom: 12px; color: var(--danger-text); }
+  .review-item { background: var(--card); border: none; border-left: 5px solid var(--danger); border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; font-size: 0.88rem; box-shadow: var(--shadow-soft); }
+  .review-item .r-ans { font-size: 0.82rem; color: var(--text-light); margin-top: 6px; }
+  .review-item .r-ans b { color: var(--text); }
+
+  .footer { text-align: center; color: var(--text-light); font-size: 0.78rem; margin-top: 30px; }
+  .empty-note { text-align:center; color: var(--text-light); padding: 30px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>日本語教員試験 対策クイズ v2</h1>
+    <p>必須の教育内容（5区分50項目）から、範囲を選んで出題します</p>
+  </div>
+
+  <!-- ===== 選択画面 ===== -->
+  <div class="select-screen" id="selectScreen">
+    <div class="hint">
+      区分の左のチェックでその区分を「まるごと」選べます。区分名をクリックすると項目が開き、項目ごとに選ぶこともできます。複数の区分・項目を組み合わせて選べます。
+    </div>
+
+    <div class="controls">
+      <span class="sel-all" id="selAll">すべて選択</span>
+      <span class="sel-all" id="selNone">すべて解除</span>
+    </div>
+
+    <div id="sectionContainer"></div>
+
+    <div class="controls">
+      <label for="countSel">出題数</label>
+      <select id="countSel">
+        <option value="10">10問</option>
+        <option value="20">20問</option>
+        <option value="0" selected>選んだ範囲の全問</option>
+      </select>
+      <label style="font-size:0.84rem;"><input type="checkbox" id="shuffleChk" checked> 順番をシャッフル</label>
+    </div>
+
+    <div class="start-row">
+      <button class="btn btn-primary" id="startBtn">スタート</button>
+    </div>
+    <div class="selected-info" id="selInfo">選択中: 0 項目 ・ 0 問</div>
+  </div>
+
+  <!-- ===== クイズ画面 ===== -->
+  <div class="quiz-screen" id="quizScreen">
+    <div class="progress-row">
+      <span class="num" id="progNum">1 / 10</span>
+      <div class="bar-wrap"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
+      <span class="score" id="scoreText">正解 0</span>
+    </div>
+    <div class="q-card">
+      <div class="q-tags" id="qTags"></div>
+      <div class="q-text" id="qText"></div>
+      <div class="choices" id="choices"></div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-primary" id="nextBtn" style="display:none;">次へ</button>
+    </div>
+  </div>
+
+  <!-- ===== 結果画面 ===== -->
+  <div class="result-screen" id="resultScreen">
+    <div class="result-card">
+      <div class="result-score" id="resultScore">0<span>/0</span></div>
+      <div class="result-msg" id="resultMsg"></div>
+    </div>
+    <div class="review" id="reviewSection"></div>
+    <div class="start-row" style="margin-top:16px;">
+      <button class="btn btn-secondary" id="backBtn">範囲を選び直す</button>
+      <button class="btn btn-primary" id="retryBtn">同じ範囲でもう一度</button>
+    </div>
+  </div>
+
+  <div class="footer">日本語教員試験 対策クイズ v2 ・ 必須の教育内容（5区分50項目）</div>
+</div>
+
+<!-- ===== データ読み込み（50項目） ===== -->
+<!-- 区分1 社会・文化・地域 -->
+<script src="data/1_社会文化地域/01_世界と日本の社会と文化.js"></script>
+<script src="data/1_社会文化地域/02_日本の在留外国人施策.js"></script>
+<script src="data/1_社会文化地域/03_多文化共生.js"></script>
+<script src="data/1_社会文化地域/04_日本語教育史.js"></script>
+<script src="data/1_社会文化地域/05_言語政策.js"></script>
+<script src="data/1_社会文化地域/06_日本語の試験.js"></script>
+<script src="data/1_社会文化地域/07_世界と日本の日本語教育事情.js"></script>
+<!-- 区分2 言語と社会 -->
+<script src="data/2_言語と社会/08_社会言語学.js"></script>
+<script src="data/2_言語と社会/09_言語政策とことば.js"></script>
+<script src="data/2_言語と社会/10_コミュニケーションストラテジー.js"></script>
+<script src="data/2_言語と社会/11_待遇敬意表現.js"></script>
+<script src="data/2_言語と社会/12_言語非言語行動.js"></script>
+<script src="data/2_言語と社会/13_多文化多言語主義.js"></script>
+<!-- 区分3 言語と心理 -->
+<script src="data/3_言語と心理/14_談話理解.js"></script>
+<script src="data/3_言語と心理/15_言語学習.js"></script>
+<script src="data/3_言語と心理/16_習得過程.js"></script>
+<script src="data/3_言語と心理/17_学習ストラテジー.js"></script>
+<script src="data/3_言語と心理/18_異文化受容適応.js"></script>
+<script src="data/3_言語と心理/19_学習教育の情意的側面.js"></script>
+<!-- 区分4 言語と教育 -->
+<script src="data/4_言語と教育/20_日本語教師の資質能力.js"></script>
+<script src="data/4_言語と教育/21_日本語教育プログラムの理解と実践.js"></script>
+<script src="data/4_言語と教育/22_教室言語環境の設定.js"></script>
+<script src="data/4_言語と教育/23_コースデザイン.js"></script>
+<script src="data/4_言語と教育/24_教授法.js"></script>
+<script src="data/4_言語と教育/25_教材分析作成開発.js"></script>
+<script src="data/4_言語と教育/26_評価法.js"></script>
+<script src="data/4_言語と教育/27_授業計画.js"></script>
+<script src="data/4_言語と教育/28_教育実習.js"></script>
+<script src="data/4_言語と教育/29_中間言語分析.js"></script>
+<script src="data/4_言語と教育/30_授業分析自己点検能力.js"></script>
+<script src="data/4_言語と教育/31_目的対象別日本語教育法.js"></script>
+<script src="data/4_言語と教育/32_異文化間教育.js"></script>
+<script src="data/4_言語と教育/33_異文化コミュニケーション.js"></script>
+<script src="data/4_言語と教育/34_コミュニケーション教育.js"></script>
+<script src="data/4_言語と教育/35_日本語教育とICT.js"></script>
+<script src="data/4_言語と教育/36_著作権.js"></script>
+<!-- 区分5 言語一般 -->
+<script src="data/5_言語一般/37_一般言語学.js"></script>
+<script src="data/5_言語一般/38_対照言語学.js"></script>
+<script src="data/5_言語一般/39_日本語分析.js"></script>
+<script src="data/5_言語一般/40_音韻音声体系.js"></script>
+<script src="data/5_言語一般/41_文字と表記.js"></script>
+<script src="data/5_言語一般/42_形態語彙体系.js"></script>
+<script src="data/5_言語一般/43_文法体系.js"></script>
+<script src="data/5_言語一般/44_意味体系.js"></script>
+<script src="data/5_言語一般/45_語用論的規範.js"></script>
+<script src="data/5_言語一般/46_受容理解能力.js"></script>
+<script src="data/5_言語一般/47_言語運用能力.js"></script>
+<script src="data/5_言語一般/48_社会文化能力.js"></script>
+<script src="data/5_言語一般/49_対人関係能力.js"></script>
+<script src="data/5_言語一般/50_異文化調整能力.js"></script>
+
+<script>
+  const V2 = window._v2 || {};
+  const SECTION_NAMES = { 1: "社会・文化・地域", 2: "言語と社会", 3: "言語と心理", 4: "言語と教育", 5: "言語一般" };
+  const SECTION_EMOJI = { 1: "🍓", 2: "🍊", 3: "🍏", 4: "🍇", 5: "🫐" };
+
+  // 全項目キーを区分・項目番号順に並べる
+  const allKeys = Object.keys(V2).sort((a, b) => {
+    const [sa, ia] = a.split("-").map(Number);
+    const [sb, ib] = b.split("-").map(Number);
+    return sa - sb || ia - ib;
+  });
+
+  // 区分ごとにキーをまとめる
+  const bySection = {};
+  allKeys.forEach(k => {
+    const s = V2[k].section;
+    (bySection[s] = bySection[s] || []).push(k);
+  });
+
+  // ---- 選択画面を描画 ----
+  const sectionContainer = document.getElementById("sectionContainer");
+  function itemCount(key) { return (V2[key].items || []).length; }
+
+  Object.keys(SECTION_NAMES).forEach(sNum => {
+    const keys = bySection[sNum] || [];
+    const total = keys.reduce((sum, k) => sum + itemCount(k), 0);
+
+    const block = document.createElement("div");
+    block.className = "section-block";
+
+    const bar = document.createElement("div");
+    bar.className = "section-bar";
+    bar.innerHTML =
+      `<input type="checkbox" class="sec-chk" data-sec="${sNum}">` +
+      `<span class="s-num">区分${sNum}</span>` +
+      `<span class="s-name">${SECTION_EMOJI[sNum]} ${SECTION_NAMES[sNum]}</span>` +
+      `<span class="s-count">${total}問</span>` +
+      `<span class="s-toggle">▼ 項目</span>`;
+    block.appendChild(bar);
+
+    const list = document.createElement("div");
+    list.className = "item-list";
+    keys.forEach(k => {
+      const d = V2[k];
+      const cnt = itemCount(k);
+      const row = document.createElement("div");
+      row.className = "item-row" + (cnt === 0 ? " empty" : "");
+      row.innerHTML =
+        `<input type="checkbox" class="item-chk" data-key="${k}" ${cnt === 0 ? "disabled" : ""}>` +
+        `<span class="i-no">${d.itemNo}</span>` +
+        `<span class="i-name">${d.itemName}</span>` +
+        `<span class="i-count">${cnt}問</span>`;
+      list.appendChild(row);
+    });
+    block.appendChild(list);
+    sectionContainer.appendChild(block);
+
+    // 区分名クリックで項目の開閉（チェックボックス自体のクリックは除く）
+    bar.addEventListener("click", (e) => {
+      if (e.target.classList.contains("sec-chk")) return;
+      list.classList.toggle("open");
+      const tg = bar.querySelector(".s-toggle");
+      tg.textContent = list.classList.contains("open") ? "▲ 項目" : "▼ 項目";
+    });
+
+    // 区分チェック → その区分の項目を全部同じ状態に
+    bar.querySelector(".sec-chk").addEventListener("change", (e) => {
+      list.querySelectorAll(".item-chk").forEach(cb => {
+        if (!cb.disabled) cb.checked = e.target.checked;
+      });
+      updateInfo();
+    });
+
+    // 項目チェック → 区分チェックの状態を同期
+    list.querySelectorAll(".item-chk").forEach(cb => {
+      cb.addEventListener("change", () => {
+        const boxes = [...list.querySelectorAll(".item-chk:not(:disabled)")];
+        const secChk = bar.querySelector(".sec-chk");
+        secChk.checked = boxes.length > 0 && boxes.every(b => b.checked);
+        updateInfo();
+      });
+    });
+  });
+
+  function selectedKeys() {
+    return [...document.querySelectorAll(".item-chk:checked")].map(cb => cb.dataset.key);
+  }
+  function updateInfo() {
+    const keys = selectedKeys();
+    const q = keys.reduce((sum, k) => sum + itemCount(k), 0);
+    document.getElementById("selInfo").textContent = `選択中: ${keys.length} 項目 ・ ${q} 問`;
+  }
+
+  document.getElementById("selAll").onclick = () => {
+    document.querySelectorAll(".item-chk:not(:disabled)").forEach(cb => cb.checked = true);
+    document.querySelectorAll(".sec-chk").forEach(cb => cb.checked = true);
+    updateInfo();
+  };
+  document.getElementById("selNone").onclick = () => {
+    document.querySelectorAll(".item-chk, .sec-chk").forEach(cb => cb.checked = false);
+    updateInfo();
+  };
+
+  // ---- クイズ状態 ----
+  let quiz = [], idx = 0, score = 0, answered = false, wrongs = [], lastKeys = [];
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    return a;
+  }
+
+  function buildPool(keys) {
+    const pool = [];
+    keys.forEach(k => (V2[k].items || []).forEach(it => {
+      pool.push({ key: k, sec: V2[k].section, itemNo: V2[k].itemNo, itemName: V2[k].itemName, q: it });
+    }));
+    return pool;
+  }
+
+  function startQuiz() {
+    const keys = selectedKeys();
+    if (keys.length === 0) { alert("区分または項目を1つ以上選んでください。"); return; }
+    let pool = buildPool(keys);
+    if (pool.length === 0) { alert("選んだ範囲にはまだ問題がありません。"); return; }
+    if (document.getElementById("shuffleChk").checked) pool = shuffle(pool);
+    const n = parseInt(document.getElementById("countSel").value, 10);
+    quiz = (n === 0) ? pool : pool.slice(0, n);
+    lastKeys = keys;
+    idx = 0; score = 0; wrongs = [];
+    show("quiz");
+    renderQuestion();
+  }
+
+  function show(which) {
+    document.getElementById("selectScreen").style.display = which === "select" ? "block" : "none";
+    document.getElementById("quizScreen").style.display = which === "quiz" ? "block" : "none";
+    document.getElementById("resultScreen").style.display = which === "result" ? "block" : "none";
+  }
+
+  function secBadge(item) {
+    return `${SECTION_EMOJI[item.sec]} 区分${item.sec} ${SECTION_NAMES[item.sec]} / ${item.itemNo} ${item.itemName}`;
+  }
+
+  function renderQuestion() {
+    answered = false;
+    const item = quiz[idx];
+    const q = item.q;
+    document.getElementById("qTags").innerHTML = `<span class="q-sec-tag">${secBadge(item)}</span>`;
+    document.getElementById("qText").textContent = q.question;
+    document.getElementById("progNum").textContent = `${idx + 1} / ${quiz.length}`;
+    document.getElementById("scoreText").textContent = `正解 ${score}`;
+    document.getElementById("barFill").style.width = `${(idx / quiz.length) * 100}%`;
+
+    const fb = document.getElementById("feedback");
+    fb.style.display = "none"; fb.className = "feedback";
+    document.getElementById("nextBtn").style.display = "none";
+
+    const marks = ["A", "B", "C", "D", "E", "F"];
+    const box = document.getElementById("choices");
+    box.innerHTML = "";
+    q.choices.forEach((c, i) => {
+      const btn = document.createElement("button");
+      btn.className = "choice";
+      btn.innerHTML = `<span class="mark">${marks[i]}.</span>${c}`;
+      btn.onclick = () => selectChoice(i, btn);
+      box.appendChild(btn);
+    });
+  }
+
+  function selectChoice(i, btn) {
+    if (answered) return;
+    answered = true;
+    const item = quiz[idx];
+    const q = item.q;
+    const buttons = document.querySelectorAll(".choice");
+    buttons.forEach(b => b.disabled = true);
+    buttons[q.answer].classList.add("correct");
+
+    const fb = document.getElementById("feedback");
+    if (i === q.answer) {
+      score++;
+      fb.classList.add("correct");
+      fb.innerHTML = `<div class="fb-title">正解！</div>${q.explanation || ""}`;
+    } else {
+      btn.classList.add("wrong");
+      fb.classList.add("wrong");
+      fb.innerHTML = `<div class="fb-title">不正解</div>正解: <b>${q.choices[q.answer]}</b><div style="margin-top:6px;">${q.explanation || ""}</div>`;
+      wrongs.push({ item, chosen: q.choices[i] });
+    }
+    fb.style.display = "block";
+    document.getElementById("scoreText").textContent = `正解 ${score}`;
+    const nb = document.getElementById("nextBtn");
+    nb.textContent = (idx + 1 >= quiz.length) ? "結果を見る" : "次へ";
+    nb.style.display = "inline-block";
+  }
+
+  function nextQuestion() {
+    idx++;
+    if (idx >= quiz.length) showResult();
+    else renderQuestion();
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  function showResult() {
+    show("result");
+    const total = quiz.length;
+    const pct = Math.round(score / total * 100);
+    document.getElementById("resultScore").innerHTML = `${score}<span>/${total}</span>`;
+    let msg;
+    if (pct >= 90) msg = "すばらしい！よく理解できています。";
+    else if (pct >= 70) msg = "good！あと少しで完璧です。";
+    else if (pct >= 50) msg = "まずまず。間違えた問題を見直しましょう。";
+    else msg = "これから！解説を読んで復習しましょう。";
+    document.getElementById("resultMsg").textContent = `${pct}% 正解 ・ ${msg}`;
+
+    const rev = document.getElementById("reviewSection");
+    if (wrongs.length > 0) {
+      let html = `<h3>間違えた問題（${wrongs.length}）</h3>`;
+      wrongs.forEach(w => {
+        html += `<div class="review-item">` +
+          `<div class="q-sec-tag" style="margin-bottom:6px;">${secBadge(w.item)}</div>` +
+          `<div>${escapeHtml(w.item.q.question)}</div>` +
+          `<div class="r-ans">正解: <b>${escapeHtml(w.item.q.choices[w.item.q.answer])}</b> ／ あなた: ${escapeHtml(w.chosen)}</div>` +
+          `</div>`;
+      });
+      rev.innerHTML = html;
+    } else {
+      rev.innerHTML = `<h3 style="color:var(--success)">全問正解！🎉</h3>`;
+    }
+  }
+
+  document.getElementById("startBtn").onclick = startQuiz;
+  document.getElementById("nextBtn").onclick = nextQuestion;
+  document.getElementById("retryBtn").onclick = () => {
+    // 同じ範囲でもう一度（lastKeysを復元して再構築）
+    let pool = buildPool(lastKeys);
+    if (document.getElementById("shuffleChk").checked) pool = shuffle(pool);
+    const n = parseInt(document.getElementById("countSel").value, 10);
+    quiz = (n === 0) ? pool : pool.slice(0, n);
+    idx = 0; score = 0; wrongs = [];
+    show("quiz"); renderQuestion();
+  };
+  document.getElementById("backBtn").onclick = () => show("select");
+
+  updateInfo();
+</script>
+</body>
+</html>
