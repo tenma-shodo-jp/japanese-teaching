@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>声道断面図 → 音 反射クイズ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #ff8fab;
+    --primary-light: #ffe4ec;
+    --primary-dark: #e56b8c;
+    --accent: #ffb26b;
+    --success: #7bd8b0;
+    --success-light: #e3f8ee;
+    --success-text: #2f8f66;
+    --danger: #ff9aa2;
+    --danger-light: #ffe9eb;
+    --danger-text: #d8586a;
+    --bg1: #fff5f7;
+    --bg2: #eef7ff;
+    --bg3: #fef6ec;
+    --card: #ffffff;
+    --text: #5b4a52;
+    --text-light: #a58f99;
+    --border: #ffe0e8;
+    --radius: 22px;
+    --shadow: 0 10px 30px rgba(255, 143, 171, 0.18);
+    --shadow-soft: 0 6px 18px rgba(180, 160, 200, 0.15);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', 'Segoe UI', 'Meiryo', sans-serif;
+    color: var(--text); line-height: 1.7; min-height: 100vh;
+    background:
+      radial-gradient(circle at 12% 8%, var(--bg1) 0%, transparent 42%),
+      radial-gradient(circle at 88% 12%, var(--bg2) 0%, transparent 40%),
+      radial-gradient(circle at 50% 100%, var(--bg3) 0%, transparent 55%),
+      #fffafc;
+    background-attachment: fixed;
+    -webkit-text-size-adjust: 100%;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 16px 16px 48px; }
+
+  .header { text-align: center; padding: 14px 0 6px; }
+  .header h1 {
+    display: inline-block; font-family: 'Mochiy Pop One', sans-serif;
+    font-size: 1.35rem; font-weight: 400; letter-spacing: 0.03em;
+    background: linear-gradient(90deg, #ff8fab, #ffb26b, #7bd8b0, #8ec5ff);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .nav { text-align: center; font-size: 0.78rem; margin-top: 4px; }
+  .nav a { color: var(--primary-dark); text-decoration: none; background: #fff; padding: 4px 14px; border-radius: 999px; box-shadow: var(--shadow-soft); }
+  .nav a:hover { background: var(--primary-light); }
+
+  /* ===== 出題タイプ ===== */
+  .types { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin: 14px 0 8px; }
+  .chip {
+    padding: 7px 14px; border-radius: 999px; border: 2px solid var(--border); background: #fff;
+    cursor: pointer; font-family: inherit; font-weight: 700; font-size: 0.8rem; color: var(--text-light);
+    transition: all 0.18s;
+  }
+  .chip.on { background: linear-gradient(135deg, #ffe4ec, #fff0f5); border-color: var(--primary); color: var(--primary-dark); }
+
+  /* ===== 成績バー ===== */
+  .stats { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 10px 0 14px; }
+  .stat { background: #fff; border-radius: 999px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; box-shadow: var(--shadow-soft); }
+  .stat b { color: var(--primary-dark); font-size: 0.95rem; }
+  .stat.streak b { color: var(--accent); }
+  .stat.best b { color: var(--success-text); }
+
+  /* ===== 問題カード ===== */
+  .quiz {
+    background: var(--card); border-radius: var(--radius); padding: 18px 18px 22px;
+    box-shadow: var(--shadow-soft); text-align: center;
+  }
+  .qnum { font-size: 0.76rem; color: var(--text-light); }
+  .qtext { font-family: 'Mochiy Pop One', sans-serif; font-size: 1rem; color: var(--primary-dark); margin: 6px 0 10px; }
+  .figbox {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #fffdfe; border: 2px solid var(--border); border-radius: 18px;
+    padding: 10px 18px; margin-bottom: 4px; min-height: 176px; min-width: 150px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .figbox img { height: 156px; width: auto; display: block; }
+  .figbox.ok { border-color: var(--success); background: var(--success-light); }
+  .figbox.ng { border-color: var(--danger); background: var(--danger-light); }
+
+  .timer { font-size: 0.74rem; color: var(--text-light); height: 1.3em; }
+
+  /* ===== 選択肢 ===== */
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .choice {
+    position: relative; padding: 14px 10px; border-radius: 16px; border: 2px solid var(--border);
+    background: #fff; cursor: pointer; font-family: inherit; font-weight: 700; font-size: 1rem;
+    color: var(--text); transition: transform 0.14s, box-shadow 0.14s, background 0.14s, border-color 0.14s;
+    box-shadow: 0 3px 8px rgba(180,160,200,0.12); text-align: center; line-height: 1.4;
+  }
+  .choice .key {
+    position: absolute; top: 4px; left: 8px; font-size: 0.62rem; color: var(--text-light);
+    background: #f9f2f6; border-radius: 6px; padding: 0 5px; font-weight: 700;
+  }
+  .choice .ipa { font-family: 'Segoe UI', 'Charis SIL', serif; letter-spacing: 0.03em; }
+  .choice .sub { display: block; font-size: 0.68rem; color: var(--text-light); font-weight: 500; }
+  .choice:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--primary); box-shadow: 0 8px 16px rgba(255,143,171,0.22); }
+  .choice:disabled { cursor: default; }
+  .choice.ok { background: var(--success-light); border-color: var(--success); color: var(--success-text); }
+  .choice.ng { background: var(--danger-light); border-color: var(--danger); color: var(--danger-text); }
+  .choice.dim { opacity: 0.5; }
+
+  .feedback { min-height: 3.2em; margin-top: 12px; font-size: 0.86rem; font-weight: 700; }
+  .feedback .good { color: var(--success-text); }
+  .feedback .bad { color: var(--danger-text); }
+  .feedback .exp { display: block; font-size: 0.78rem; color: var(--text-light); font-weight: 500; margin-top: 2px; }
+  .nextnote { font-size: 0.74rem; color: var(--text-light); margin-top: 4px; }
+
+  .btn {
+    display: inline-block; padding: 10px 26px; border: none; border-radius: 999px;
+    font-size: 0.9rem; cursor: pointer; font-family: inherit; font-weight: 700;
+    background: linear-gradient(135deg, #ffb0c8, #ff8fab); color: #fff;
+    box-shadow: 0 8px 16px rgba(255,143,171,0.4); transition: transform 0.2s;
+  }
+  .btn:hover { transform: translateY(-2px) scale(1.03); }
+  .btn-ghost { background: rgba(255,255,255,0.8); color: var(--text-light); border: 1.5px solid var(--border); box-shadow: none; }
+
+  /* ===== 苦手リスト ===== */
+  .weak { background: var(--card); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow-soft); margin-top: 16px; }
+  .weak h2 { font-family: 'Mochiy Pop One', sans-serif; font-size: 0.9rem; color: var(--primary-dark); font-weight: 400; margin-bottom: 8px; }
+  .weak-list { display: flex; gap: 8px; flex-wrap: wrap; }
+  .weak-item { background: #fff8fa; border: 1.5px solid var(--border); border-radius: 12px; padding: 5px; text-align: center; width: 76px; }
+  .weak-item img { width: 100%; height: 44px; object-fit: contain; }
+  .weak-item .n { font-size: 0.66rem; color: var(--danger-text); font-weight: 700; }
+  .weak-item .s { font-size: 0.64rem; color: var(--text-light); font-family: 'Segoe UI', serif; }
+  .weak-empty { font-size: 0.8rem; color: var(--text-light); }
+
+  .footnote { font-size: 0.74rem; color: var(--text-light); text-align: center; margin-top: 18px; line-height: 1.9; }
+
+  @media (max-width: 520px) {
+    .choices { grid-template-columns: 1fr; }
+    .figbox img { height: 128px; }
+    .figbox { min-height: 148px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>断面図 → 音 反射クイズ</h1>
+    <div class="nav"><a href="index.html">← 調音表ドラッグ練習へ</a></div>
+  </div>
+
+  <div class="types" id="types"></div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="quiz">
+    <div class="qnum" id="qnum"></div>
+    <div class="qtext" id="qtext"></div>
+    <div class="figbox" id="figbox"><img id="figimg" src="" alt="声道断面図"></div>
+    <div class="timer" id="timer"></div>
+    <div class="choices" id="choices"></div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <div class="nextnote" id="nextnote"></div>
+  </div>
+
+  <div class="weak">
+    <h2>まちがえた図（優先して再出題されます）</h2>
+    <div class="weak-list" id="weakList"></div>
+  </div>
+
+  <div style="text-align:center; margin-top:16px;">
+    <button class="btn btn-ghost" onclick="resetStats()">記録をリセット</button>
+  </div>
+
+  <div class="footnote">
+    キーボードの <b>1〜4</b> で回答、<b>Space / Enter</b> で次へ。<br>
+    正解すると自動で次の問題に進みます。まちがえた図は少しあとにまた出ます。
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+/* =========================================================
+   断面図を見て、音・調音点・調音法を即答する連続ドリル
+   ========================================================= */
+
+/* ---------- 断面図ごとにまとめる（同じ図に複数の音がある） ---------- */
+const ITEMS = (() => {
+  const map = new Map();
+  SOUNDS.forEach(s => {
+    if (!s.img) return;                       /* [ɴ] は断面図なし */
+    if (!map.has(s.img)) map.set(s.img, { img: s.img, sounds: [], places: [], manners: [] });
+    const it = map.get(s.img);
+    it.sounds.push(s);
+    if (!it.places.includes(s.place)) it.places.push(s.place);
+    if (!it.manners.includes(s.manner)) it.manners.push(s.manner);
+  });
+  const list = [...map.values()];
+  list.forEach(it => it.sounds.sort((a, b) => (a.voiced ? 1 : 0) - (b.voiced ? 1 : 0)));
+  return list;
+})();
+
+const placeName  = (id) => (PLACES.find(p => p.id === id)  || {}).name || id;
+const mannerName = (id) => (MANNERS.find(m => m.id === id) || {}).name || id;
+const ipaLabel   = (it) => it.sounds.map(s => '[' + s.ipa + ']').join(' ');
+const kanaLabel  = (it) => it.sounds.map(s => s.kana).join('・');
+const placeLabel = (it) => it.places.map(placeName).join('・');
+const mannerLabel= (it) => it.manners.map(mannerName).join('・');
+const fullLabel  = (it) => placeLabel(it) + mannerLabel(it);
+
+/* ---------- 出題タイプ ---------- */
+const TYPES = [
+  { id: 'sound',  name: '音（記号）' },
+  { id: 'kana',   name: '仮名' },
+  { id: 'place',  name: '調音点' },
+  { id: 'manner', name: '調音法' },
+];
+let enabled = { sound: true, kana: true, place: true, manner: true };
+
+/* ---------- 状態 ---------- */
+const LS_KEY = 'seidoQuizStats_v1';
+let stats = { answered: 0, correct: 0, streak: 0, best: 0, timeSum: 0, miss: {} };
+let queue = [];
+let current = null;      /* { item, type, options, answerIdx } */
+let startedAt = 0;
+let waiting = false;     /* 結果表示中（次へ待ち） */
+let timerId = null;
+let seq = 0;             /* 問題の通し番号（自動送りの二重発火よけ） */
+
+const $ = (id) => document.getElementById(id);
+
+/* ---------- 保存 ---------- */
+function load() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) stats = Object.assign(stats, JSON.parse(raw));
+    if (!stats.miss) stats.miss = {};
+  } catch (e) { /* 読めなければ初期値のまま */ }
+}
+function save() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(stats)); } catch (e) {}
+}
+function resetStats() {
+  stats = { answered: 0, correct: 0, streak: 0, best: 0, timeSum: 0, miss: {} };
+  save();
+  queue = [];
+  renderStats(); renderWeak();
+  nextQuestion();
+}
+
+/* ---------- ユーティリティ ---------- */
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+const sample = (arr, n) => shuffle(arr.slice()).slice(0, n);
+
+/* ---------- 出題キュー（まちがえた図を多めに混ぜる） ---------- */
+function refillQueue() {
+  const round = ITEMS.slice();
+  ITEMS.forEach(it => {
+    const n = Math.min(stats.miss[it.img] || 0, 3);
+    for (let k = 0; k < n; k++) round.push(it);   /* 苦手は最大3回追加 */
+  });
+  queue = shuffle(round);
+}
+
+function pickType() {
+  const on = TYPES.filter(t => enabled[t.id]).map(t => t.id);
+  if (!on.length) return 'sound';
+  return on[Math.floor(Math.random() * on.length)];
+}
+
+/* ---------- 問題を作る ---------- */
+function makeQuestion(item, type) {
+  let qtext, options, answerIdx, explain;
+
+  if (type === 'sound' || type === 'kana') {
+    const label = (type === 'sound') ? ipaLabel : kanaLabel;
+    const others = sample(ITEMS.filter(x => x.img !== item.img && label(x) !== label(item)), 3);
+    const pool = shuffle([item, ...others]);
+    options = pool.map(x => (type === 'sound')
+      ? { html: '<span class="ipa">' + ipaLabel(x) + '</span><span class="sub">' + kanaLabel(x) + '</span>', ok: x.img === item.img }
+      : { html: kanaLabel(x) + '<span class="sub">' + ipaLabel(x) + '</span>', ok: x.img === item.img });
+    qtext = (type === 'sound') ? 'この断面図の音は？' : 'この断面図が表す仮名は？';
+    explain = ipaLabel(item) + '（' + kanaLabel(item) + '）… ' + fullLabel(item);
+
+  } else if (type === 'place') {
+    const wrong = sample(PLACES.filter(p => !item.places.includes(p.id)), 3).map(p => p.id);
+    const pool = shuffle([item.places[0], ...wrong]);
+    options = pool.map(id => ({ html: placeName(id), ok: item.places.includes(id) }));
+    qtext = 'この断面図の調音点は？';
+    explain = ipaLabel(item) + ' … ' + fullLabel(item);
+
+  } else { /* manner */
+    const wrong = sample(MANNERS.filter(m => !item.manners.includes(m.id)), 3).map(m => m.id);
+    /* 図が2つの調音法にまたがる場合は、正解としてどちらかを出す */
+    const right = item.manners[Math.floor(Math.random() * item.manners.length)];
+    const pool = shuffle([right, ...wrong]);
+    options = pool.map(id => ({ html: mannerName(id), ok: item.manners.includes(id) }));
+    qtext = 'この断面図の調音法は？';
+    explain = (item.manners.length > 1)
+      ? ipaLabel(item) + ' … ' + mannerLabel(item) + ' の両方（同じ形で作る）'
+      : ipaLabel(item) + ' … ' + fullLabel(item);
+  }
+
+  answerIdx = options.findIndex(o => o.ok);
+  return { item, type, qtext, options, answerIdx, explain };
+}
+
+/* ---------- 出題 ---------- */
+function nextQuestion() {
+  if (!queue.length) refillQueue();
+  const item = queue.shift();
+  current = makeQuestion(item, pickType());
+  waiting = false;
+  seq++;
+
+  $('qnum').textContent = '第 ' + (stats.answered + 1) + ' 問';
+  $('qtext').textContent = current.qtext;
+  $('figimg').src = encodeURIComponent(item.img);
+  $('figbox').className = 'figbox';
+  $('feedback').innerHTML = '';
+  $('nextnote').textContent = '';
+
+  $('choices').innerHTML = current.options.map((o, i) =>
+    `<button class="choice" data-i="${i}" onclick="answer(${i})"><span class="key">${i + 1}</span>${o.html}</button>`
+  ).join('');
+
+  startedAt = Date.now();
+  clearInterval(timerId);
+  timerId = setInterval(() => {
+    $('timer').textContent = ((Date.now() - startedAt) / 1000).toFixed(1) + ' 秒';
+  }, 100);
+  $('timer').textContent = '0.0 秒';
+}
+
+function answer(i) {
+  if (waiting || !current) return;
+  clearInterval(timerId);
+  const ms = Date.now() - startedAt;
+  const ok = current.options[i].ok;
+
+  stats.answered++;
+  stats.timeSum += ms;
+  if (ok) {
+    stats.correct++;
+    stats.streak++;
+    if (stats.streak > stats.best) stats.best = stats.streak;
+    if (stats.miss[current.item.img]) {
+      stats.miss[current.item.img]--;                     /* 正解できたら苦手度を下げる */
+      if (!stats.miss[current.item.img]) delete stats.miss[current.item.img];
+    }
+  } else {
+    stats.streak = 0;
+    stats.miss[current.item.img] = (stats.miss[current.item.img] || 0) + 1;
+    /* まちがえた図は少しあとにもう一度 */
+    queue.splice(Math.min(2, queue.length), 0, current.item);
+  }
+  save();
+
+  /* 選択肢の色づけ */
+  document.querySelectorAll('.choice').forEach((el, idx) => {
+    el.disabled = true;
+    if (current.options[idx].ok) el.classList.add('ok');
+    else if (idx === i) el.classList.add('ng');
+    else el.classList.add('dim');
+  });
+  $('figbox').className = 'figbox ' + (ok ? 'ok' : 'ng');
+
+  const sec = (ms / 1000).toFixed(1);
+  $('feedback').innerHTML = ok
+    ? `<span class="good">正解！ ${sec}秒${ms < 2000 ? ' ⚡はやい' : ''}</span><span class="exp">${current.explain}</span>`
+    : `<span class="bad">ざんねん</span><span class="exp">${current.explain}</span>`;
+
+  renderStats();
+  renderWeak();
+
+  if (ok) {
+    waiting = true;
+    const mySeq = seq;
+    setTimeout(() => { if (waiting && seq === mySeq) nextQuestion(); }, 850);
+  } else {
+    waiting = true;
+    $('nextnote').innerHTML = 'Space / Enter か、ここをクリックで次へ &nbsp;<button class="btn" onclick="nextQuestion()">次の問題</button>';
+  }
+}
+
+/* ---------- 描画 ---------- */
+function renderTypes() {
+  $('types').innerHTML = TYPES.map(t =>
+    `<button class="chip${enabled[t.id] ? ' on' : ''}" onclick="toggleType('${t.id}')">${t.name}</button>`
+  ).join('');
+}
+function toggleType(id) {
+  const on = TYPES.filter(t => enabled[t.id]);
+  if (enabled[id] && on.length === 1) { return; }   /* 全部オフにはしない */
+  enabled[id] = !enabled[id];
+  renderTypes();
+}
+
+function renderStats() {
+  const rate = stats.answered ? Math.round(stats.correct / stats.answered * 100) : 0;
+  const avg = stats.answered ? (stats.timeSum / stats.answered / 1000).toFixed(1) : '0.0';
+  $('stats').innerHTML =
+    `<span class="stat streak">連続 <b>${stats.streak}</b></span>` +
+    `<span class="stat best">最高連続 <b>${stats.best}</b></span>` +
+    `<span class="stat">正答率 <b>${rate}%</b></span>` +
+    `<span class="stat">解答数 <b>${stats.answered}</b></span>` +
+    `<span class="stat">平均 <b>${avg}秒</b></span>`;
+}
+
+function renderWeak() {
+  const keys = Object.keys(stats.miss).sort((a, b) => stats.miss[b] - stats.miss[a]);
+  if (!keys.length) {
+    $('weakList').innerHTML = '<span class="weak-empty">まだありません。正解を重ねるとここが空のままになります。</span>';
+    return;
+  }
+  $('weakList').innerHTML = keys.map(img => {
+    const it = ITEMS.find(x => x.img === img);
+    return `<div class="weak-item">
+      <img src="${encodeURIComponent(img)}" alt="">
+      <div class="s">${it ? ipaLabel(it) : ''}</div>
+      <div class="n">×${stats.miss[img]}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- キーボード ---------- */
+document.addEventListener('keydown', e => {
+  if (e.key >= '1' && e.key <= '4') {
+    const el = document.querySelector('.choice[data-i="' + (Number(e.key) - 1) + '"]');
+    if (el && !el.disabled) { e.preventDefault(); answer(Number(e.key) - 1); }
+  } else if (e.key === ' ' || e.key === 'Enter') {
+    if (waiting) { e.preventDefault(); nextQuestion(); }
+  }
+});
+/* 結果表示中に画面クリックでも次へ */
+document.addEventListener('click', e => {
+  if (waiting && !e.target.closest('.choice') && !e.target.closest('.chip') && !e.target.closest('button')) {
+    nextQuestion();
+  }
+});
+
+/* ---------- 起動 ---------- */
+load();
+renderTypes();
+renderStats();
+renderWeak();
+nextQuestion();
+</script>
+</body>
+</html>

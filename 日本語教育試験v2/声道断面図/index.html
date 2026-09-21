@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>声道断面図 調音表ドラッグ練習</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #ff8fab;
+    --primary-light: #ffe4ec;
+    --primary-dark: #e56b8c;
+    --accent: #ffb26b;
+    --success: #7bd8b0;
+    --success-light: #e3f8ee;
+    --success-text: #2f8f66;
+    --danger: #ff9aa2;
+    --danger-light: #ffe9eb;
+    --danger-text: #d8586a;
+    --bg1: #fff5f7;
+    --bg2: #eef7ff;
+    --bg3: #fef6ec;
+    --card: #ffffff;
+    --text: #5b4a52;
+    --text-light: #a58f99;
+    --border: #ffe0e8;
+    --radius: 20px;
+    --shadow: 0 10px 30px rgba(255, 143, 171, 0.18);
+    --shadow-soft: 0 6px 18px rgba(180, 160, 200, 0.15);
+    --slot-w: 92px;
+    --img-h: 54px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', 'Segoe UI', 'Meiryo', sans-serif;
+    color: var(--text); line-height: 1.7; min-height: 100vh;
+    background:
+      radial-gradient(circle at 12% 8%, var(--bg1) 0%, transparent 42%),
+      radial-gradient(circle at 88% 12%, var(--bg2) 0%, transparent 40%),
+      radial-gradient(circle at 50% 100%, var(--bg3) 0%, transparent 55%),
+      #fffafc;
+    background-attachment: fixed;
+    -webkit-text-size-adjust: 100%;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 18px 16px 60px; }
+
+  .header { text-align: center; padding: 18px 0 8px; }
+  .header h1 {
+    display: inline-block; font-family: 'Mochiy Pop One', sans-serif;
+    font-size: 1.5rem; font-weight: 400; letter-spacing: 0.03em;
+    background: linear-gradient(90deg, #ff8fab, #ffb26b, #7bd8b0, #8ec5ff);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .header p { color: var(--text-light); font-size: 0.85rem; margin-top: 4px; }
+  .nav { font-size: 0.78rem; margin-top: 6px; }
+  .nav a { color: var(--primary-dark); text-decoration: none; background: #fff; padding: 4px 14px; border-radius: 999px; box-shadow: var(--shadow-soft); }
+  .nav a:hover { background: var(--primary-light); }
+
+  /* ===== ボタン ===== */
+  .btn {
+    position: relative; display: inline-block; padding: 10px 22px; border: none; border-radius: 999px;
+    font-size: 0.9rem; cursor: pointer; font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700;
+    overflow: hidden; transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+  }
+  .btn::before {
+    content: ""; position: absolute; top: 4px; left: 12%; right: 12%; height: 36%;
+    background: rgba(255,255,255,0.5); border-radius: 999px; filter: blur(1px); pointer-events: none;
+  }
+  .btn-primary { background: linear-gradient(135deg, #ffb0c8, #ff8fab); color: #fff; box-shadow: 0 8px 16px rgba(255,143,171,0.4); }
+  .btn-primary:hover { transform: translateY(-2px) scale(1.03); }
+  .btn-secondary { background: #fff; color: var(--primary-dark); box-shadow: var(--shadow-soft); }
+  .btn-secondary:hover { transform: translateY(-2px) scale(1.02); }
+  .btn-ghost { background: rgba(255,255,255,0.7); color: var(--text-light); box-shadow: none; border: 1.5px solid var(--border); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+  .toolbar { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; align-items: center; margin: 12px 0; }
+  .sizebar { display: inline-flex; gap: 4px; align-items: center; font-size: 0.8rem; color: var(--text-light); background: #fff; padding: 5px 10px; border-radius: 999px; box-shadow: var(--shadow-soft); }
+  .sizebar button { border: none; background: var(--primary-light); color: var(--primary-dark); width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-weight: 700; font-family: inherit; }
+
+  .hint { background: rgba(255,255,255,0.85); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 12px 18px; margin: 8px 0 14px; font-size: 0.83rem; color: var(--text-light); box-shadow: var(--shadow-soft); }
+  .hint b { color: var(--primary-dark); }
+
+  /* ===== スコア ===== */
+  .scorebar { display: flex; gap: 14px; justify-content: center; align-items: center; flex-wrap: wrap; margin: 6px 0 14px; }
+  .score-pill { background: #fff; border-radius: 999px; padding: 7px 18px; font-weight: 700; font-size: 0.88rem; box-shadow: var(--shadow-soft); }
+  .score-pill.ok { background: var(--success-light); color: var(--success-text); }
+  .score-pill.ng { background: var(--danger-light); color: var(--danger-text); }
+
+  /* ===== カード置き場 ===== */
+  .tray-wrap { background: var(--card); border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow-soft); margin-bottom: 18px; }
+  .tray-group + .tray-group { margin-top: 14px; border-top: 1.5px dashed var(--border); padding-top: 12px; }
+  .tray-title { font-family: 'Mochiy Pop One', sans-serif; font-size: 0.9rem; color: var(--primary-dark); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .tray-title .count { font-size: 0.74rem; background: var(--primary-light); color: var(--primary-dark); padding: 2px 10px; border-radius: 999px; font-family: 'Zen Maru Gothic', sans-serif; }
+  .tray { display: flex; flex-wrap: wrap; gap: 8px; min-height: 56px; align-content: flex-start; border-radius: 14px; padding: 6px; transition: background 0.15s; }
+  .tray.dragover { background: var(--primary-light); }
+  .tray.done::after { content: "ぜんぶ置きました 🍨"; color: var(--text-light); font-size: 0.82rem; padding: 14px 10px; }
+
+  /* ===== カード ===== */
+  .card {
+    width: var(--slot-w); background: #fff; border: 2px solid var(--border); border-radius: 12px;
+    padding: 4px 3px 5px; cursor: grab; text-align: center; user-select: none;
+    box-shadow: 0 3px 8px rgba(180,160,200,0.14); transition: transform 0.16s, box-shadow 0.16s, border-color 0.16s;
+    flex: 0 0 auto;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 8px 16px rgba(255,143,171,0.25); border-color: var(--primary); }
+  .card:active { cursor: grabbing; }
+  .card.selected { border-color: var(--accent); background: #fff8ee; transform: translateY(-3px) scale(1.04); box-shadow: 0 8px 18px rgba(255,178,107,0.4); }
+  .card.dragging { opacity: 0.4; }
+  .card img { width: 100%; height: var(--img-h); object-fit: contain; display: block; pointer-events: none; }
+  .card .ipa { font-family: 'Segoe UI', 'Charis SIL', serif; font-size: 1rem; font-weight: 700; color: var(--text); line-height: 1.3; letter-spacing: 0.02em; }
+  .card .kana { font-size: 0.64rem; color: var(--text-light); line-height: 1.35; }
+  .card.snd-only { background: linear-gradient(135deg, #ffffff, #fff8fb); }
+
+  /* ===== 表 ===== */
+  .table-scroll { overflow-x: auto; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-soft); padding: 12px; }
+  table.chart { border-collapse: separate; border-spacing: 5px; margin: 0 auto; }
+  table.chart th {
+    font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 0.8rem; color: var(--primary-dark);
+    background: var(--primary-light); border-radius: 10px; padding: 8px 6px; white-space: nowrap;
+  }
+  table.chart th.corner { background: transparent; }
+  table.chart th.rowhead {
+    position: sticky; left: 0; z-index: 3; background: linear-gradient(135deg, #fff0f5, #ffe4ec);
+    box-shadow: 3px 0 8px rgba(255,143,171,0.12); text-align: right; padding: 8px 10px;
+  }
+  table.chart td { padding: 0; vertical-align: top; text-align: center; }
+  .cell-stack { display: flex; flex-direction: column; gap: 4px; align-items: center; width: 100%; }
+  .slot {
+    border: 2px dashed #f0dbe4; border-radius: 12px; background: #fffdfe;
+    display: flex; align-items: center; justify-content: center; position: relative;
+    transition: background 0.15s, border-color 0.15s; width: var(--slot-w);
+  }
+  .slot.fig { min-height: calc(var(--img-h) + 14px); }
+  .slot.snd { min-height: 58px; }
+  .slot .tlabel {
+    position: absolute; top: 3px; left: 5px; font-size: 0.58rem; color: #cdbcc5;
+    background: #fff; padding: 0 5px; border-radius: 6px; pointer-events: none; z-index: 1;
+  }
+  .slot.dragover { background: var(--primary-light); border-color: var(--primary); border-style: solid; }
+  .slot.filled { border-style: solid; border-color: transparent; background: transparent; }
+  .slot.tappable { cursor: pointer; }
+  .slot.tappable:hover { background: #fff6fa; border-color: var(--primary); }
+  .slot.result-ok { background: var(--success-light); border-color: var(--success); border-style: solid; }
+  .slot.result-ng { background: var(--danger-light); border-color: var(--danger); border-style: solid; }
+  .slot .answer {
+    position: absolute; bottom: -1px; left: 0; right: 0; font-size: 0.58rem; color: var(--danger-text);
+    background: rgba(255,255,255,0.92); border-radius: 0 0 10px 10px; pointer-events: none; line-height: 1.5;
+  }
+  .slot .card { box-shadow: none; border-color: transparent; background: transparent; }
+  .slot .card:hover { transform: none; box-shadow: none; }
+  .slot.fig .card { padding: 2px; }
+
+  .legend { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; font-size: 0.76rem; color: var(--text-light); margin-top: 12px; }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .legend i { width: 14px; height: 14px; border-radius: 5px; display: inline-block; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(20px);
+    background: #fff; color: var(--primary-dark); font-weight: 700; padding: 12px 26px; border-radius: 999px;
+    box-shadow: var(--shadow); opacity: 0; pointer-events: none; transition: all 0.3s; font-size: 0.9rem; z-index: 50;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .footnote { font-size: 0.75rem; color: var(--text-light); text-align: center; margin-top: 20px; line-height: 1.9; }
+
+  @media (max-width: 640px) {
+    :root { --slot-w: 74px; --img-h: 42px; }
+    .header h1 { font-size: 1.2rem; }
+    .container { padding: 12px 10px 50px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>声道断面図 × 調音表 ドラッグ練習</h1>
+    <p>断面図カードと音カードを、正しいマスに置いていこう</p>
+    <div class="nav"><a href="図から音クイズ.html">断面図 → 音 の反射クイズへ →</a></div>
+  </div>
+
+  <div class="hint" id="hint"></div>
+
+  <div class="toolbar">
+    <button class="btn btn-primary" onclick="checkAnswers()">答え合わせ</button>
+    <button class="btn btn-secondary" id="retryBtn" onclick="retryWrong()" disabled>まちがいだけやり直す</button>
+    <button class="btn btn-ghost" onclick="resetBoard(true)">ぜんぶ戻す</button>
+    <button class="btn btn-ghost" onclick="shuffleTray()">カードをシャッフル</button>
+    <button class="btn btn-ghost" onclick="showAnswers()">答えを見る</button>
+    <span class="sizebar">
+      表示 <button onclick="changeSize(-1)" title="小さく">−</button>
+      <button onclick="changeSize(1)" title="大きく">＋</button>
+    </span>
+  </div>
+
+  <div class="scorebar" id="scorebar"></div>
+
+  <div class="tray-wrap" id="trayWrap"></div>
+
+  <div class="table-scroll">
+    <table class="chart" id="chart"></table>
+    <div class="legend">
+      <span><i style="background:var(--success)"></i>正解</span>
+      <span><i style="background:var(--danger)"></i>まちがい</span>
+      <span><i style="background:#f0dbe4"></i>空きマス</span>
+      <span>上段 = 断面図 / 下段 = 音</span>
+    </div>
+  </div>
+
+  <div class="footnote">
+    パソコンはドラッグ&ドロップ、スマホはカードをタップ → マスをタップで置けます。<br>
+    置いたカードをもう一度タップすると置き場に戻ります。<br>
+    同じマスに入る音（[p] [b] など）は1枚のカードにまとめてあります。
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="data.js"></script>
+<script>
+/* =========================================================
+   断面図カードと音カードを、調音点×調音法の表に別々に置く練習
+   各マス： 上段 = 断面図のスロット / 下段 = 音のスロット
+   ========================================================= */
+let cards = [];       // 全カード（図＋音）
+let slots = {};       // slotKey -> cardId | null
+let expected = {};    // slotKey -> cardId（正解配置）
+let results = null;   // slotKey -> 'ok' | 'ng'
+let selectedCardId = null;
+let sizeStep = 0;
+
+const $ = (id) => document.getElementById(id);
+const fKey = (place, manner) => 'f|' + place + '|' + manner;
+const sKey = (place, manner) => 's|' + place + '|' + manner;
+
+/* ===================== セル情報 ===================== */
+/* 調音点×調音法ごとに、そこに入る音と断面図をまとめる */
+function buildCells() {
+  const map = new Map();   // 'place|manner' -> { img, sounds: [], alt: Set }
+  SOUNDS.forEach(s => {
+    const k = s.place + '|' + s.manner;
+    if (!map.has(k)) map.set(k, { img: null, sounds: [], alt: new Set() });
+    const cell = map.get(k);
+    if (!cell.img && s.img) cell.img = s.img;   /* 断面図が無い音もあるため */
+    cell.sounds.push(s);
+    (s.alt || []).forEach(a => cell.alt.add(a));
+  });
+  /* 無声→有声の順に並べる（表示順をそろえるため） */
+  map.forEach(cell => cell.sounds.sort((a, b) => (a.voiced ? 1 : 0) - (b.voiced ? 1 : 0)));
+  return map;
+}
+
+/* ===================== カード生成 ===================== */
+function buildBoard() {
+  const cellMap = buildCells();
+  cards = [];
+  expected = {};
+  let i = 0;
+
+  cellMap.forEach((cell, k) => {
+    /* --- 断面図カード（図がある音のマスだけ） --- */
+    if (cell.img) {
+      const figOk = ['f|' + k].concat([...cell.alt].map(a => 'f|' + a));
+      cards.push({
+        id: 'f' + i, type: 'fig', img: cell.img,
+        ipa: '', kana: '', homeKey: 'f|' + k, okKeys: figOk,
+      });
+      expected['f|' + k] = 'f' + i;
+    }
+
+    /* --- 音カード（同じマスの音は1枚にまとめる・有声無声は書かない） --- */
+    const sndOk = ['s|' + k].concat([...cell.alt].map(a => 's|' + a));
+    cards.push({
+      id: 's' + i, type: 'snd', img: null,
+      ipa: cell.sounds.map(s => '[' + s.ipa + ']').join(' '),
+      kana: cell.sounds.map(s => s.kana).join('・'),
+      homeKey: 's|' + k, okKeys: sndOk,
+    });
+    expected['s|' + k] = 's' + i;
+    i++;
+  });
+
+  shuffle(cards);
+  slots = {};
+  results = null;
+  selectedCardId = null;
+  $('retryBtn').disabled = true;
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/* ===================== 判定 ===================== */
+/* 同じ断面図のカードは入れ替え可能（同じ図が2マスに入るため） */
+function cardFitsSlot(card, slotKey) {
+  if (!card) return false;
+  if (slotKey[0] !== (card.type === 'fig' ? 'f' : 's')) return false;
+  if (card.okKeys.includes(slotKey)) return true;
+  const want = expected[slotKey];
+  if (!want) return false;
+  const wc = cards.find(c => c.id === want);
+  if (!wc) return false;
+  return card.type === 'fig' ? wc.img === card.img : wc.ipa === card.ipa;
+}
+
+function collectSlotKeys() {
+  const keys = [];
+  MANNERS.forEach(m => PLACES.forEach(p => {
+    keys.push(fKey(p.id, m.id));
+    keys.push(sKey(p.id, m.id));
+  }));
+  return keys;
+}
+
+/* そのマスの正解ラベル */
+function cellAnswerLabel(key) {
+  const parts = key.split('|');
+  const isFig = parts[0] === 'f';
+  const list = SOUNDS.filter(s => s.place === parts[1] && s.manner === parts[2]);
+  if (!list.length) return 'ここは空';
+  if (isFig && !list.some(s => s.img)) return '図なし';
+  return (isFig ? '図: ' : '') + list.map(s => '[' + s.ipa + ']').join('');
+}
+
+/* ===================== 描画 ===================== */
+function renderAll() {
+  renderChart();
+  renderTray();
+  renderScore();
+  renderHint();
+}
+
+function renderHint() {
+  if (imgErrors.size > 0) return;
+  $('hint').innerHTML = '各マスの<b>上段に断面図</b>、<b>下段に音</b>を置きます。'
+    + '調音点（横）と調音法（縦）を手がかりに、図と音をそれぞれ自分で結びつけましょう。'
+    + '同じマスに入る音はまとめて1枚のカードになっています。';
+}
+
+function renderChart() {
+  const t = $('chart');
+  let html = '<tr><th class="corner"></th>';
+  PLACES.forEach(p => { html += `<th>${p.name}</th>`; });
+  html += '</tr>';
+
+  MANNERS.forEach(m => {
+    html += `<tr><th class="rowhead">${m.name}</th>`;
+    PLACES.forEach(p => {
+      html += '<td><div class="cell-stack">'
+        + slotHtml(fKey(p.id, m.id), 'fig', '図')
+        + slotHtml(sKey(p.id, m.id), 'snd', '音')
+        + '</div></td>';
+    });
+    html += '</tr>';
+  });
+  t.innerHTML = html;
+
+  t.querySelectorAll('.slot').forEach(el => {
+    el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('dragover'); });
+    el.addEventListener('dragleave', () => el.classList.remove('dragover'));
+    el.addEventListener('drop', e => {
+      e.preventDefault(); el.classList.remove('dragover');
+      const id = e.dataTransfer.getData('text/plain');
+      if (id) placeCard(id, el.dataset.key);
+    });
+    el.addEventListener('click', e => {
+      if (selectedCardId) { e.stopPropagation(); placeCard(selectedCardId, el.dataset.key); }
+    });
+  });
+}
+
+function slotHtml(key, kindClass, tlabel) {
+  const cardId = slots[key];
+  const res = results ? results[key] : null;
+  const cls = ['slot', kindClass];
+  if (cardId) cls.push('filled');
+  if (selectedCardId && !cardId) cls.push('tappable');
+  if (res === 'ok') cls.push('result-ok');
+  if (res === 'ng') cls.push('result-ng');
+
+  let inner = '';
+  if (!cardId && tlabel) inner += `<span class="tlabel">${tlabel}</span>`;
+  if (cardId) inner += cardHtml(cards.find(x => x.id === cardId));
+  if (res === 'ng') inner += `<span class="answer">${cellAnswerLabel(key)}</span>`;
+  return `<div class="${cls.join(' ')}" data-key="${key}">${inner}</div>`;
+}
+
+function cardHtml(c) {
+  if (!c) return '';
+  const sel = (selectedCardId === c.id) ? ' selected' : '';
+  if (c.type === 'fig') {
+    return `<div class="card${sel}" draggable="true" data-id="${c.id}">`
+      + `<img src="${encodeURIComponent(c.img)}" alt="声道断面図" onerror="imgError('${c.img}')"></div>`;
+  }
+  return `<div class="card snd-only${sel}" draggable="true" data-id="${c.id}">`
+    + `<div class="ipa">${c.ipa}</div><div class="kana">${c.kana}</div></div>`;
+}
+
+function renderTray() {
+  const placed = new Set(Object.values(slots).filter(Boolean));
+  const rest = cards.filter(c => !placed.has(c.id));
+  const groups = [
+    { key: 'fig', title: '断面図カード' },
+    { key: 'snd', title: '音カード' },
+  ];
+
+  $('trayWrap').innerHTML = groups.map((g, i) => {
+    const mine = rest.filter(c => c.type === g.key);
+    const all = cards.filter(c => c.type === g.key);
+    return `<div class="tray-group">
+      <div class="tray-title">${g.title} <span class="count">のこり ${mine.length} / ${all.length} 枚</span></div>
+      <div class="tray${mine.length === 0 ? ' done' : ''}" data-tray="${i}">${mine.map(cardHtml).join('')}</div>
+    </div>`;
+  }).join('');
+
+  $('trayWrap').querySelectorAll('.tray').forEach(tr => {
+    tr.addEventListener('dragover', e => { e.preventDefault(); tr.classList.add('dragover'); });
+    tr.addEventListener('dragleave', () => tr.classList.remove('dragover'));
+    tr.addEventListener('drop', e => {
+      e.preventDefault(); tr.classList.remove('dragover');
+      const id = e.dataTransfer.getData('text/plain');
+      if (id) returnCard(id);
+    });
+  });
+  bindCards();
+}
+
+function bindCards() {
+  document.querySelectorAll('.card').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', el.dataset.id);
+      e.dataTransfer.effectAllowed = 'move';
+      el.classList.add('dragging');
+    });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = el.dataset.id;
+      if (el.closest('.slot')) { returnCard(id); return; }
+      selectedCardId = (selectedCardId === id) ? null : id;
+      renderAll();
+    });
+  });
+}
+
+/* ===================== 操作 ===================== */
+function placeCard(cardId, slotKey) {
+  const card = cards.find(c => c.id === cardId);
+  if (!card) return;
+  const want = (card.type === 'fig') ? 'f' : 's';
+  if (slotKey[0] !== want) {
+    toast(card.type === 'fig' ? '断面図は上段のマスへ' : '音カードは下段のマスへ');
+    return;
+  }
+  for (const k in slots) if (slots[k] === cardId) slots[k] = null;
+  if (slots[slotKey]) slots[slotKey] = null;
+  slots[slotKey] = cardId;
+  selectedCardId = null;
+  results = null;
+  $('retryBtn').disabled = true;
+  renderAll();
+}
+
+function returnCard(cardId) {
+  for (const k in slots) if (slots[k] === cardId) slots[k] = null;
+  selectedCardId = null;
+  results = null;
+  $('retryBtn').disabled = true;
+  renderAll();
+}
+
+function resetBoard(notify) {
+  slots = {};
+  results = null;
+  selectedCardId = null;
+  $('retryBtn').disabled = true;
+  renderAll();
+  if (notify) toast('ぜんぶ戻しました');
+}
+
+function shuffleTray() {
+  shuffle(cards);
+  renderAll();
+  toast('カードをシャッフルしました');
+}
+
+function checkAnswers() {
+  if (Object.values(slots).filter(Boolean).length === 0) { toast('まずカードを置いてみよう'); return; }
+
+  const allKeys = collectSlotKeys();
+  /* 先に「正しく置けているカード」を確定（別解のマスも正解扱い） */
+  const placedOk = new Set();
+  allKeys.forEach(key => {
+    const id = slots[key];
+    if (id && cardFitsSlot(cards.find(c => c.id === id), key)) placedOk.add(id);
+  });
+
+  results = {};
+  let ok = 0, ng = 0;
+  allKeys.forEach(key => {
+    const id = slots[key];
+    const want = expected[key];
+    if (!id) {
+      if (want && !placedOk.has(want)) { results[key] = 'ng'; ng++; }
+      return;
+    }
+    if (placedOk.has(id)) { results[key] = 'ok'; ok++; }
+    else { results[key] = 'ng'; ng++; }
+  });
+
+  renderAll();
+  $('retryBtn').disabled = (ng === 0);
+  const total = Object.keys(expected).length;
+  if (ok === total && ng === 0) toast('全問正解！ 完璧です 🍦');
+  else toast(`正解 ${ok} / ${total}`);
+}
+
+function retryWrong() {
+  if (!results) return;
+  for (const k in results) if (results[k] === 'ng') slots[k] = null;
+  results = null;
+  $('retryBtn').disabled = true;
+  renderAll();
+  toast('まちがいを戻しました。もう一度！');
+}
+
+function showAnswers() {
+  slots = {};
+  for (const k in expected) slots[k] = expected[k];
+  results = null;
+  selectedCardId = null;
+  $('retryBtn').disabled = true;
+  renderAll();
+  toast('正解の配置を表示しました');
+}
+
+function renderScore() {
+  const placed = Object.values(slots).filter(Boolean).length;
+  const total = Object.keys(expected).length;
+  let html = `<span class="score-pill">配置 ${placed} / ${total}</span>`;
+  if (results) {
+    const ok = Object.values(results).filter(v => v === 'ok').length;
+    const ng = Object.values(results).filter(v => v === 'ng').length;
+    html += `<span class="score-pill ok">正解 ${ok}</span><span class="score-pill ng">まちがい ${ng}</span>`;
+  }
+  $('scorebar').innerHTML = html;
+}
+
+function changeSize(d) {
+  sizeStep = Math.max(-2, Math.min(3, sizeStep + d));
+  document.documentElement.style.setProperty('--slot-w', (92 + sizeStep * 12) + 'px');
+  document.documentElement.style.setProperty('--img-h', (54 + sizeStep * 10) + 'px');
+}
+
+/* 画像が読み込めないときに知らせる（ファイル名の不一致対策） */
+const imgErrors = new Set();
+function imgError(name) {
+  if (imgErrors.has(name)) return;
+  imgErrors.add(name);
+  $('hint').innerHTML = '⚠ 画像が読み込めません: <b>' + [...imgErrors].join(' / ')
+    + '</b><br>data.js の img とフォルダ内のファイル名が合っているか確認してください。';
+}
+
+let toastTimer = null;
+function toast(msg) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+/* 何もない所をクリックしたら選択解除 */
+document.addEventListener('click', () => {
+  if (selectedCardId) { selectedCardId = null; renderAll(); }
+});
+
+/* ===================== 起動 ===================== */
+buildBoard();
+renderAll();
+</script>
+</body>
+</html>
