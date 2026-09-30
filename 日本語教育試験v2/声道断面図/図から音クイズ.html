@@ -85,6 +85,20 @@
     transition: border-color 0.2s, background 0.2s;
   }
   .figbox img { height: 156px; width: auto; display: block; }
+  .figbox.comparison { display: flex; gap: 12px; padding: 12px; width: 100%; }
+  .sound-compare { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; width: 100%; }
+  .sound-side { flex: 1; min-width: 0; }
+  .sound-side img { height: 128px; max-width: 100%; margin: 0 auto; }
+  .sound-side .tag { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 0.68rem; font-weight: 700; }
+  .sound-side.wrong .tag { color: var(--danger-text); background: var(--danger-light); }
+  .sound-side.correct .tag { color: var(--success-text); background: var(--success-light); }
+  .sound-side .word { margin-top: 3px; font-weight: 700; font-size: 0.88rem; }
+  .sound-side .ipa-note { color: var(--text-light); font-family: 'Segoe UI', serif; font-size: 0.72rem; }
+  .rhythm-side { padding: 16px 8px; }
+  .rhythm-side .word { font-size: 1.15rem; margin: 8px 0; }
+  .unit-row { display: inline-block; background: #fff; border: 1.5px solid var(--border); border-radius: 12px; padding: 8px 10px; font-size: 0.78rem; font-weight: 700; }
+  .rhythm-note { width: 100%; color: var(--text-light); font-size: 0.72rem; margin-top: 8px; }
+  .compare-arrow { color: var(--primary-dark); font-size: 1.25rem; font-weight: 700; }
   .figbox.ok { border-color: var(--success); background: var(--success-light); }
   .figbox.ng { border-color: var(--danger); background: var(--danger-light); }
 
@@ -130,7 +144,9 @@
   .weak h2 { font-family: 'Mochiy Pop One', sans-serif; font-size: 0.9rem; color: var(--primary-dark); font-weight: 400; margin-bottom: 8px; }
   .weak-list { display: flex; gap: 8px; flex-wrap: wrap; }
   .weak-item { background: #fff8fa; border: 1.5px solid var(--border); border-radius: 12px; padding: 5px; text-align: center; width: 76px; }
+  .weak-item.error-item { width: 132px; padding: 8px; }
   .weak-item img { width: 100%; height: 44px; object-fit: contain; }
+  .weak-item .words { font-size: 0.72rem; color: var(--text); font-weight: 700; white-space: nowrap; }
   .weak-item .n { font-size: 0.66rem; color: var(--danger-text); font-weight: 700; }
   .weak-item .s { font-size: 0.64rem; color: var(--text-light); font-family: 'Segoe UI', serif; }
   .weak-empty { font-size: 0.8rem; color: var(--text-light); }
@@ -141,6 +157,9 @@
     .choices { grid-template-columns: 1fr; }
     .figbox img { height: 128px; }
     .figbox { min-height: 148px; }
+    .sound-compare { gap: 4px; }
+    .sound-side img { height: 92px; }
+    .compare-arrow { font-size: 1rem; }
   }
 </style>
 </head>
@@ -158,7 +177,7 @@
   <div class="quiz">
     <div class="qnum" id="qnum"></div>
     <div class="qtext" id="qtext"></div>
-    <div class="figbox" id="figbox"><img id="figimg" src="" alt="声道断面図"></div>
+    <div class="figbox" id="figbox"></div>
     <div class="timer" id="timer"></div>
     <div class="choices" id="choices"></div>
     <div class="feedback" id="feedback" aria-live="polite"></div>
@@ -166,7 +185,7 @@
   </div>
 
   <div class="weak">
-    <h2>まちがえた図（優先して再出題されます）</h2>
+    <h2>苦手な図・発音ミス・リズム（優先して再出題されます）</h2>
     <div class="weak-list" id="weakList"></div>
   </div>
 
@@ -176,7 +195,7 @@
 
   <div class="footnote">
     キーボードの <b>1〜4</b> で回答、<b>Space / Enter</b> で次へ。<br>
-    正解すると自動で次の問題に進みます。まちがえた図は少しあとにまた出ます。
+    正解すると自動で次の問題に進みます。まちがえた問題は少しあとにまた出ます。
   </div>
 </div>
 
@@ -212,18 +231,22 @@ const fullLabel  = (it) => placeLabel(it) + mannerLabel(it);
 
 /* ---------- 出題タイプ ---------- */
 const TYPES = [
-  { id: 'sound',  name: '音（記号）' },
-  { id: 'kana',   name: '仮名' },
-  { id: 'place',  name: '調音点' },
-  { id: 'manner', name: '調音法' },
+  { id: 'sound',   name: '音（記号）' },
+  { id: 'kana',    name: '仮名' },
+  { id: 'place',   name: '調音点' },
+  { id: 'manner',  name: '調音法' },
+  { id: 'error',   name: 'よくある発音ミス' },
+  { id: 'rhythm',  name: '特殊拍・リズム' },
 ];
-let enabled = { sound: true, kana: true, place: true, manner: true };
+let enabled = { sound: true, kana: true, place: true, manner: true, error: true, rhythm: true };
 
 /* ---------- 状態 ---------- */
 const LS_KEY = 'seidoQuizStats_v1';
 let stats = { answered: 0, correct: 0, streak: 0, best: 0, timeSum: 0, miss: {} };
 let queue = [];
-let current = null;      /* { item, type, options, answerIdx } */
+let errorQueue = [];
+let rhythmQueue = [];
+let current = null;      /* { item, type, options, answerIdx, missKey } */
 let startedAt = 0;
 let waiting = false;     /* 結果表示中（次へ待ち） */
 let timerId = null;
@@ -246,6 +269,8 @@ function resetStats() {
   stats = { answered: 0, correct: 0, streak: 0, best: 0, timeSum: 0, miss: {} };
   save();
   queue = [];
+  errorQueue = [];
+  rhythmQueue = [];
   renderStats(); renderWeak();
   nextQuestion();
 }
@@ -260,7 +285,7 @@ function shuffle(a) {
 }
 const sample = (arr, n) => shuffle(arr.slice()).slice(0, n);
 
-/* ---------- 出題キュー（まちがえた図を多めに混ぜる） ---------- */
+/* ---------- 出題キュー（まちがえた問題を多めに混ぜる） ---------- */
 function refillQueue() {
   const round = ITEMS.slice();
   ITEMS.forEach(it => {
@@ -268,6 +293,28 @@ function refillQueue() {
     for (let k = 0; k < n; k++) round.push(it);   /* 苦手は最大3回追加 */
   });
   queue = shuffle(round);
+}
+
+function errorKey(item) { return 'error:' + item.id; }
+
+function refillErrorQueue() {
+  const round = PRONUNCIATION_ERRORS.slice();
+  PRONUNCIATION_ERRORS.forEach(it => {
+    const n = Math.min(stats.miss[errorKey(it)] || 0, 3);
+    for (let k = 0; k < n; k++) round.push(it);
+  });
+  errorQueue = shuffle(round);
+}
+
+function rhythmKey(item) { return 'rhythm:' + item.id; }
+
+function refillRhythmQueue() {
+  const round = RHYTHM_ERRORS.slice();
+  RHYTHM_ERRORS.forEach(it => {
+    const n = Math.min(stats.miss[rhythmKey(it)] || 0, 3);
+    for (let k = 0; k < n; k++) round.push(it);
+  });
+  rhythmQueue = shuffle(round);
 }
 
 function pickType() {
@@ -297,7 +344,7 @@ function makeQuestion(item, type) {
     qtext = 'この断面図の調音点は？';
     explain = ipaLabel(item) + ' … ' + fullLabel(item);
 
-  } else { /* manner */
+  } else if (type === 'manner') {
     const wrong = sample(MANNERS.filter(m => !item.manners.includes(m.id)), 3).map(m => m.id);
     /* 図が2つの調音法にまたがる場合は、正解としてどちらかを出す */
     const right = item.manners[Math.floor(Math.random() * item.manners.length)];
@@ -310,21 +357,120 @@ function makeQuestion(item, type) {
   }
 
   answerIdx = options.findIndex(o => o.ok);
-  return { item, type, qtext, options, answerIdx, explain };
+  return { item, type, qtext, options, answerIdx, explain, missKey: item.img };
+}
+
+function soundByIpa(ipa) {
+  return SOUNDS.find(s => s.ipa === ipa);
+}
+
+function makeErrorQuestion(item) {
+  const wrongSound = soundByIpa(item.wrongIpa);
+  const correctSound = soundByIpa(item.correctIpa);
+  const indexedChoices = item.choices.map((text, index) => ({ text, index }));
+  const options = shuffle(indexedChoices).map(choice => ({
+    html: choice.text,
+    ok: choice.index === item.answer
+  }));
+  return {
+    item,
+    type: 'error',
+    qtext: `誤り「${item.wrong}」→ 正しくは「${item.correct}」。主な原因は？`,
+    options,
+    answerIdx: options.findIndex(o => o.ok),
+    explain: item.explanation,
+    missKey: errorKey(item),
+    wrongSound,
+    correctSound
+  };
+}
+
+function makeRhythmQuestion(item) {
+  const indexedChoices = item.choices.map((text, index) => ({ text, index }));
+  const options = shuffle(indexedChoices).map(choice => ({
+    html: choice.text,
+    ok: choice.index === item.answer
+  }));
+  return {
+    item,
+    type: 'rhythm',
+    qtext: `誤り「${item.wrong}」→ 正しくは「${item.correct}」。主な原因は？`,
+    options,
+    answerIdx: options.findIndex(o => o.ok),
+    explain: item.explanation,
+    missKey: rhythmKey(item)
+  };
 }
 
 /* ---------- 出題 ---------- */
+function renderFigure(question) {
+  const box = $('figbox');
+  const isComparison = question.type === 'error' || question.type === 'rhythm';
+  box.className = 'figbox' + (isComparison ? ' comparison' : '');
+  if (question.type === 'rhythm') {
+    box.innerHTML = `
+      <div class="sound-compare">
+        <div class="sound-side wrong rhythm-side">
+          <span class="tag">誤った発音</span>
+          <div class="word">${question.item.wrong}</div>
+          <div class="unit-row">${question.item.wrongUnits}</div>
+        </div>
+        <div class="compare-arrow">→</div>
+        <div class="sound-side correct rhythm-side">
+          <span class="tag">正しい発音</span>
+          <div class="word">${question.item.correct}</div>
+          <div class="unit-row">${question.item.correctUnits}</div>
+        </div>
+        <div class="rhythm-note">「・」で区切った一つひとつが1拍です</div>
+      </div>`;
+    return;
+  }
+  if (question.type !== 'error') {
+    box.innerHTML = `<img src="${encodeURIComponent(question.item.img)}" alt="声道断面図">`;
+    return;
+  }
+  const wrong = question.wrongSound;
+  const correct = question.correctSound;
+  box.innerHTML = `
+    <div class="sound-compare">
+      <div class="sound-side wrong">
+        <span class="tag">誤った発音</span>
+        <div class="word">${question.item.wrong}</div>
+        <img src="${encodeURIComponent(wrong.img)}" alt="${question.item.wrong}の子音の声道断面図">
+        <div class="ipa-note">[${wrong.ipa}]</div>
+      </div>
+      <div class="compare-arrow">→</div>
+      <div class="sound-side correct">
+        <span class="tag">正しい発音</span>
+        <div class="word">${question.item.correct}</div>
+        <img src="${encodeURIComponent(correct.img)}" alt="${question.item.correct}の子音の声道断面図">
+        <div class="ipa-note">[${correct.ipa}]</div>
+      </div>
+    </div>`;
+}
+
 function nextQuestion() {
-  if (!queue.length) refillQueue();
-  const item = queue.shift();
-  current = makeQuestion(item, pickType());
+  const type = pickType();
+  let item;
+  if (type === 'error') {
+    if (!errorQueue.length) refillErrorQueue();
+    item = errorQueue.shift();
+    current = makeErrorQuestion(item);
+  } else if (type === 'rhythm') {
+    if (!rhythmQueue.length) refillRhythmQueue();
+    item = rhythmQueue.shift();
+    current = makeRhythmQuestion(item);
+  } else {
+    if (!queue.length) refillQueue();
+    item = queue.shift();
+    current = makeQuestion(item, type);
+  }
   waiting = false;
   seq++;
 
   $('qnum').textContent = '第 ' + (stats.answered + 1) + ' 問';
   $('qtext').textContent = current.qtext;
-  $('figimg').src = encodeURIComponent(item.img);
-  $('figbox').className = 'figbox';
+  renderFigure(current);
   $('feedback').innerHTML = '';
   $('nextnote').textContent = '';
 
@@ -352,15 +498,18 @@ function answer(i) {
     stats.correct++;
     stats.streak++;
     if (stats.streak > stats.best) stats.best = stats.streak;
-    if (stats.miss[current.item.img]) {
-      stats.miss[current.item.img]--;                     /* 正解できたら苦手度を下げる */
-      if (!stats.miss[current.item.img]) delete stats.miss[current.item.img];
+    if (stats.miss[current.missKey]) {
+      stats.miss[current.missKey]--;                     /* 正解できたら苦手度を下げる */
+      if (!stats.miss[current.missKey]) delete stats.miss[current.missKey];
     }
   } else {
     stats.streak = 0;
-    stats.miss[current.item.img] = (stats.miss[current.item.img] || 0) + 1;
-    /* まちがえた図は少しあとにもう一度 */
-    queue.splice(Math.min(2, queue.length), 0, current.item);
+    stats.miss[current.missKey] = (stats.miss[current.missKey] || 0) + 1;
+    /* まちがえた問題は少しあとにもう一度 */
+    const retryQueue = current.type === 'error' ? errorQueue
+      : current.type === 'rhythm' ? rhythmQueue
+      : queue;
+    retryQueue.splice(Math.min(2, retryQueue.length), 0, current.item);
   }
   save();
 
@@ -371,7 +520,7 @@ function answer(i) {
     else if (idx === i) el.classList.add('ng');
     else el.classList.add('dim');
   });
-  $('figbox').className = 'figbox ' + (ok ? 'ok' : 'ng');
+  $('figbox').classList.add(ok ? 'ok' : 'ng');
 
   const sec = (ms / 1000).toFixed(1);
   $('feedback').innerHTML = ok
@@ -421,12 +570,30 @@ function renderWeak() {
     $('weakList').innerHTML = '<span class="weak-empty">まだありません。正解を重ねるとここが空のままになります。</span>';
     return;
   }
-  $('weakList').innerHTML = keys.map(img => {
-    const it = ITEMS.find(x => x.img === img);
+  $('weakList').innerHTML = keys.map(key => {
+    if (key.startsWith('rhythm:')) {
+      const item = RHYTHM_ERRORS.find(x => rhythmKey(x) === key);
+      if (!item) return '';
+      return `<div class="weak-item error-item">
+        <div class="words">${item.wrong} → ${item.correct}</div>
+        <div class="s">特殊拍・リズム</div>
+        <div class="n">×${stats.miss[key]}</div>
+      </div>`;
+    }
+    if (key.startsWith('error:')) {
+      const item = PRONUNCIATION_ERRORS.find(x => errorKey(x) === key);
+      if (!item) return '';
+      return `<div class="weak-item error-item">
+        <div class="words">${item.wrong} → ${item.correct}</div>
+        <div class="s">発音ミス</div>
+        <div class="n">×${stats.miss[key]}</div>
+      </div>`;
+    }
+    const it = ITEMS.find(x => x.img === key);
     return `<div class="weak-item">
-      <img src="${encodeURIComponent(img)}" alt="">
+      <img src="${encodeURIComponent(key)}" alt="">
       <div class="s">${it ? ipaLabel(it) : ''}</div>
-      <div class="n">×${stats.miss[img]}</div>
+      <div class="n">×${stats.miss[key]}</div>
     </div>`;
   }).join('');
 }
