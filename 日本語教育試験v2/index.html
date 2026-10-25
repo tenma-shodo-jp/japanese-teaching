@@ -36,6 +36,7 @@
     --f3: #7fd6c4; --f3bg: #e8faf5;   /* ミント */
     --f4: #b8a4e3; --f4bg: #f4eefc;   /* ブルーベリー */
     --f5: #8ec5ff; --f5bg: #ecf5ff;   /* ソーダ */
+    --f6: #c9a27a; --f6bg: #f6eee4;   /* ビスケット（応用読解） */
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -97,6 +98,7 @@
   .section-block:nth-of-type(3) .section-bar { background: var(--f3bg); } .section-block:nth-of-type(3) .s-num { background: var(--f3); } .section-block:nth-of-type(3) .s-name, .section-block:nth-of-type(3) .s-toggle { color: #2f9d8a; } .section-block:nth-of-type(3) input { accent-color: var(--f3); }
   .section-block:nth-of-type(4) .section-bar { background: var(--f4bg); } .section-block:nth-of-type(4) .s-num { background: var(--f4); } .section-block:nth-of-type(4) .s-name, .section-block:nth-of-type(4) .s-toggle { color: #8368c4; } .section-block:nth-of-type(4) input { accent-color: var(--f4); }
   .section-block:nth-of-type(5) .section-bar { background: var(--f5bg); } .section-block:nth-of-type(5) .s-num { background: var(--f5); } .section-block:nth-of-type(5) .s-name, .section-block:nth-of-type(5) .s-toggle { color: #4d92db; } .section-block:nth-of-type(5) input { accent-color: var(--f5); }
+  .section-block:nth-of-type(6) .section-bar { background: var(--f6bg); } .section-block:nth-of-type(6) .s-num { background: var(--f6); } .section-block:nth-of-type(6) .s-name, .section-block:nth-of-type(6) .s-toggle { color: #a9794a; } .section-block:nth-of-type(6) input { accent-color: var(--f6); }
 
   .item-list { display: none; padding: 6px 18px 16px; }
   .item-list.open { display: block; }
@@ -151,6 +153,7 @@
   }
   .q-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
   .q-sec-tag { display: inline-block; font-size: 0.72rem; font-weight: 800; background: var(--f2bg); color: var(--accent); border: 1.5px solid #ffe0bd; padding: 4px 12px; border-radius: 999px; }
+  .passage { white-space: pre-wrap; background: var(--f6bg); border: 1.5px solid #ecdcc7; border-radius: 16px; padding: 16px 18px; margin-bottom: 16px; font-size: 0.92rem; line-height: 1.95; color: #6b5a4a; max-height: 300px; overflow-y: auto; }
   .q-text { font-family: 'Mochiy Pop One', 'Zen Maru Gothic', sans-serif; font-size: 1.12rem; line-height: 2; margin-bottom: 6px; font-weight: 400; }
 
   .choices { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
@@ -190,7 +193,7 @@
 <div class="container">
   <div class="header">
     <h1>日本語教員試験 対策クイズ v2</h1>
-    <p>必須の教育内容（5区分50項目）から、範囲を選んで出題します</p>
+    <p>必須の教育内容（5区分50項目）＋応用読解から、範囲を選んで出題します</p>
   </div>
 
   <!-- ===== 選択画面 ===== -->
@@ -231,6 +234,7 @@
     </div>
     <div class="q-card">
       <div class="q-tags" id="qTags"></div>
+      <div class="passage" id="qPassage" style="display:none;"></div>
       <div class="q-text" id="qText"></div>
       <div class="choices" id="choices"></div>
       <div class="feedback" id="feedback"></div>
@@ -253,7 +257,7 @@
     </div>
   </div>
 
-  <div class="footer">日本語教員試験 対策クイズ v2 ・ 必須の教育内容（5区分50項目）</div>
+  <div class="footer">日本語教員試験 対策クイズ v2 ・ 必須の教育内容（5区分50項目）＋応用読解</div>
 </div>
 
 <!-- ===== データ読み込み（50項目） ===== -->
@@ -312,11 +316,21 @@
 <script src="data/5_言語一般/48_社会文化能力.js"></script>
 <script src="data/5_言語一般/49_対人関係能力.js"></script>
 <script src="data/5_言語一般/50_異文化調整能力.js"></script>
+<!-- 区分6 応用読解 -->
+<script src="data/6_応用読解/61_読解コーパスとDDL.js"></script>
+<script src="data/6_応用読解/62_読解TBLTとTSLT.js"></script>
+<script src="data/6_応用読解/63_読解JSL児童と文化変容.js"></script>
+<script src="data/6_応用読解/64_読解テストと評価.js"></script>
+<script src="data/6_応用読解/65_読解異文化理解とDIE.js"></script>
+<script src="data/6_応用読解/66_読解介護の日本語.js"></script>
+<script src="data/6_応用読解/67_読解日本語教育の機関.js"></script>
+<script src="data/6_応用読解/68_読解海外の日本語教育.js"></script>
+<script src="data/6_応用読解/69_読解日本語の文法と専門用語.js"></script>
 
 <script>
   const V2 = window._v2 || {};
-  const SECTION_NAMES = { 1: "社会・文化・地域", 2: "言語と社会", 3: "言語と心理", 4: "言語と教育", 5: "言語一般" };
-  const SECTION_EMOJI = { 1: "🍓", 2: "🍊", 3: "🍏", 4: "🍇", 5: "🫐" };
+  const SECTION_NAMES = { 1: "社会・文化・地域", 2: "言語と社会", 3: "言語と心理", 4: "言語と教育", 5: "言語一般", 6: "応用読解" };
+  const SECTION_EMOJI = { 1: "🍓", 2: "🍊", 3: "🍏", 4: "🍇", 5: "🫐", 6: "📖" };
 
   // 全項目キーを区分・項目番号順に並べる
   const allKeys = Object.keys(V2).sort((a, b) => {
@@ -369,6 +383,12 @@
     });
     block.appendChild(list);
     sectionContainer.appendChild(block);
+
+    // 応用読解（区分6）は、どの文章を解くか個別に選びやすいよう初めから開いておく
+    if (String(sNum) === "6") {
+      list.classList.add("open");
+      bar.querySelector(".s-toggle").textContent = "▲ 項目";
+    }
 
     // 区分名クリックで項目の開閉（チェックボックス自体のクリックは除く）
     bar.addEventListener("click", (e) => {
@@ -428,9 +448,29 @@
   function buildPool(keys) {
     const pool = [];
     keys.forEach(k => (V2[k].items || []).forEach(it => {
-      pool.push({ key: k, sec: V2[k].section, itemNo: V2[k].itemNo, itemName: V2[k].itemName, q: it });
+      pool.push({ key: k, sec: V2[k].section, itemNo: V2[k].itemNo, itemName: V2[k].itemName, passage: V2[k].passage || "", q: it });
     }));
     return pool;
+  }
+
+  // 読解（本文つき）の問題はシャッフルしても本文ごとにまとめ、設問順を保つ
+  function arrangePool(pool, doShuffle) {
+    const reading = pool.filter(p => p.passage);
+    const normal = pool.filter(p => !p.passage);
+    // 本文（キー）ごとにグループ化し、設問順は維持
+    const groups = {};
+    const order = [];
+    reading.forEach(p => {
+      if (!groups[p.key]) { groups[p.key] = []; order.push(p.key); }
+      groups[p.key].push(p);
+    });
+    let normalArr = doShuffle ? shuffle(normal) : normal;
+    let groupKeys = doShuffle ? shuffle(order) : order;
+    // 本文グループを先に、その後に通常問題を並べる
+    let result = [];
+    groupKeys.forEach(k => { result = result.concat(groups[k]); });
+    result = result.concat(normalArr);
+    return result;
   }
 
   function startQuiz() {
@@ -438,7 +478,7 @@
     if (keys.length === 0) { alert("区分または項目を1つ以上選んでください。"); return; }
     let pool = buildPool(keys);
     if (pool.length === 0) { alert("選んだ範囲にはまだ問題がありません。"); return; }
-    if (document.getElementById("shuffleChk").checked) pool = shuffle(pool);
+    pool = arrangePool(pool, document.getElementById("shuffleChk").checked);
     const n = parseInt(document.getElementById("countSel").value, 10);
     quiz = (n === 0) ? pool : pool.slice(0, n);
     lastKeys = keys;
@@ -462,6 +502,13 @@
     const item = quiz[idx];
     const q = item.q;
     document.getElementById("qTags").innerHTML = `<span class="q-sec-tag">${secBadge(item)}</span>`;
+    const pas = document.getElementById("qPassage");
+    if (item.passage) {
+      pas.textContent = item.passage;
+      pas.style.display = "block";
+    } else {
+      pas.style.display = "none";
+    }
     document.getElementById("qText").textContent = q.question;
     document.getElementById("progNum").textContent = `${idx + 1} / ${quiz.length}`;
     document.getElementById("scoreText").textContent = `正解 ${score}`;
@@ -553,7 +600,7 @@
   document.getElementById("retryBtn").onclick = () => {
     // 同じ範囲でもう一度（lastKeysを復元して再構築）
     let pool = buildPool(lastKeys);
-    if (document.getElementById("shuffleChk").checked) pool = shuffle(pool);
+    pool = arrangePool(pool, document.getElementById("shuffleChk").checked);
     const n = parseInt(document.getElementById("countSel").value, 10);
     quiz = (n === 0) ? pool : pool.slice(0, n);
     idx = 0; score = 0; wrongs = [];
